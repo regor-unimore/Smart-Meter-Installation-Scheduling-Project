@@ -11,8 +11,11 @@ args = parseArguments()
 J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argFolder, args.argInstance)
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
+# Initialize the random number generator
+rnd.seed(args.argSeed)
+
 # ----------------------------------------------------------------------------------------------------------------------
-# Functions implementing the semi-greedy heuristics used to build an initial feasible solution in the GRASP
+# Functions implementing the semi-greedy heuristics used to build an initial feasible solution in the GRASP matheuristics
 # ----------------------------------------------------------------------------------------------------------------------
 def swap(group_order, i, j):
     if i != j:

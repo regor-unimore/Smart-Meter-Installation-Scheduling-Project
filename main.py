@@ -1,8 +1,8 @@
 # import
 from argumentParser import parseArguments
 from classes import Solution
-from localSearch import large_neighborhood_search
-from model import create_model
+from localSearch import largeNeighborhoodSearch
+from model import createModel
 from parameters import setupParameters, setupIndexes
 from semiGreedy import greedyRandomizedConstructiveHeuristics
 from utils import writeFile
@@ -18,7 +18,7 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Create the model
-model, x, y, overline_y, z, S, R, X, D = create_model()
+model, x, y, overline_y, z, S, R, X, D = createModel()
 
 # Run the algorithm
 
@@ -57,7 +57,7 @@ while iteration < args.argMaxIter:
         print('> Improving the solution via local search...\n')
 
         # Run the local search and update the current solution
-        solution.update_from_solution(large_neighborhood_search(solution, model, x, y, overline_y, z, S, R, X, D))
+        solution.update_from_solution(largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D))
 
         # Message for the user
         print("  Beta: {:.2f}, NPV_curr: {:.2f}\n".format(args.argBeta, solution.NPV))

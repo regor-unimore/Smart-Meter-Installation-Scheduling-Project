@@ -48,6 +48,9 @@ def parseArguments():
         # Time limit for the solver (in seconds)
         parser.add_argument('-tl', '--timeLimit', action="store", type=float, required=True, help="Time limit for the solver (in seconds)", dest="argTimeLimit")
 
+        # Seed to initialize the random number generator
+        parser.add_argument('-sd', '--seed', action="store", type=int, required=True, help="Seed to initialize the random number generator", dest="argSeed")
+
         # Define '_cached_args'
         _cached_args = parser.parse_args()
 

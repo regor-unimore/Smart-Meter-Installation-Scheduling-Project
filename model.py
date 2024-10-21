@@ -14,7 +14,7 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 # ----------------------------------------------------------------------------------------------------------------------
 # Create the MILP model
 # ----------------------------------------------------------------------------------------------------------------------
-def create_model():
+def createModel():
     # Message for the user
     print("> Creating the model...\n")
 
