@@ -1,5 +1,6 @@
 # import
-from parameters import parseArguments, setupParameters, setupIndexes
+from argumentParser import parseArguments
+from parameters import setupParameters, setupIndexes
 import gurobipy as gp
 from gurobipy import GRB
 # import numpy as np

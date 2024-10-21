@@ -1,6 +1,7 @@
 # import
-from parameters import parseArguments, setupParameters, setupIndexes
+from argumentParser import parseArguments
 from classes import Solution
+from parameters import setupParameters, setupIndexes
 import copy as cp
 import math as m
 import random as rnd

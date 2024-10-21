@@ -1,5 +1,6 @@
 # import
-from parameters import parseArguments, setupParameters, setupIndexes
+from argumentParser import parseArguments
+from parameters import setupParameters, setupIndexes
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()

@@ -1,10 +1,11 @@
 # import
-from utils import writeFile
-from parameters import parseArguments, setupParameters, setupIndexes
+from argumentParser import parseArguments
 from classes import Solution
-from modelCreator import create_model
-from semiGreedy import greedyRandomizedConstructiveHeuristics
 from localSearch import large_neighborhood_search
+from modelCreator import create_model
+from parameters import setupParameters, setupIndexes
+from semiGreedy import greedyRandomizedConstructiveHeuristics
+from utils import writeFile
 import time as tm
 
 # Access the parsed arguments, parameters, and indexes
