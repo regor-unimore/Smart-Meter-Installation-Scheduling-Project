@@ -2,7 +2,7 @@
 from argumentParser import parseArguments
 from classes import Solution
 from localSearch import large_neighborhood_search
-from modelCreator import create_model
+from model import create_model
 from parameters import setupParameters, setupIndexes
 from semiGreedy import greedyRandomizedConstructiveHeuristics
 from utils import writeFile
