@@ -28,7 +28,7 @@ def swap(group_order, i, j):
     return group_order
 
 def srptSort(interval, group_remaining_processing_time):
-    # Define 'outlook' (i.e., a supporting variable that indicates the number of periods ahead to consider for the next reading
+    # Define 'outlook' (i.e., a supporting variable that indicates the number of periods ahead to consider for the next reading -- HARDCODED
     OUTLOOK = 24
 
     # Initialise 'group_order'
@@ -70,7 +70,7 @@ def srptSort(interval, group_remaining_processing_time):
     return group_order
 
 def lrptSort(interval, group_remaining_processing_time):
-    # Define 'outlook' (i.e., a supporting variable that indicates the number of periods ahead to consider for the next reading
+    # Define 'outlook' (i.e., a supporting variable that indicates the number of periods ahead to consider for the next reading -- HARDCODED
     OUTLOOK = 24
 
     # Initialise 'group_order'
@@ -135,13 +135,19 @@ def greedyRandomizedConstructiveHeuristics():
 
     # While there are remaining intervals in the operational horizon
     while interval < len(intervals):
-        # TODO: create a condition to select 'srpt_sort' or 'lrpt_sort'
+        # Condition to select 'srpt_sort' or 'lrpt_sort'
+        if args.argSortingRule == "LongestRemainingProcessingTime":
+            # Message for the user
+            # print("\nUsing the \'Longest Remaining Processing Time\' as a sorting criterion!\n")
 
-        # Order or re-order meter groups based on the shortest remaining processing time
-        group_order = srptSort(interval, group_remaining_processing_time)
+            # Order or re-order meter groups based on the longest remaining processing time
+            group_order = lrptSort(interval, group_remaining_processing_time)
+        else:
+            # Message for the user
+            # print("\nUsing the \'Shortest Remaining Processing Time\' as a sorting criterion!\n")
 
-        # Order or re-order meter groups based on the longest remaining processing time
-        # group_order = lrptSort(interval, group_remaining_processing_time)
+            # Order or re-order meter groups based on the shortest remaining processing time (DEFAULT)
+            group_order = srptSort(interval, group_remaining_processing_time)
 
         # Create a candidate list of all meter groups for which an activity can be scheduled
 

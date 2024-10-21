@@ -30,6 +30,9 @@ def parseArguments():
         # Name of the instance
         parser.add_argument('-i', '--instance', action="store", type=str, required=True, help="Name of the instance", dest="argInstance")
 
+        # Sorting rule used within the greedy randomized constructive heuristics
+        parser.add_argument('-s', '--sortingRule', action="store", type=str, required=True, help="Sorting rule used within the greedy randomized constructive heuristics (i.e., \'LongestRemainingProcessingTime\', or \'ShortestRemainingProcessingTime\'", dest="argSortingRule")
+
         # Cardinality of the restricted candidate list in the greedy randomized constructive heuristics
         parser.add_argument('-a', '--alpha', action="store", type=int, required=True, help="Cardinality of the restricted candidate list in the greedy randomized constructive heuristics", dest="argAlpha")
 
