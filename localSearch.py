@@ -49,6 +49,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
 
         for j, t in z_fixed:
             z[j, t].LB = 1.0
+
     elif fix_id == 2:
         # Message to the user
         print("\n  Using \'destroy\' method no. {}\n".format(fix_id))
@@ -75,6 +76,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
 
         for j, t in z_fixed:
             z[(j, t)].LB = 1.0
+
     elif fix_id == 3:
         # Message to the user
         print("\n  Using \'destroy\' method no. {}\n".format(fix_id))
@@ -101,13 +103,15 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
 
         for j, t in z_fixed:
             z[(j, t)].LB = 1.0
+
     elif fix_id == 4:
         # Message to the user
         print("\n  Using \'destroy\' method no. {}\n".format(fix_id))
 
-        """ > 4th 'destroy' method: randomly chooses a 'k' sized list of substitution squads and does not fix the heuristic solution for these squads """
-        # TODO:
-        #  (1) this method needs careful tuning of parameters 'k' and 'y_sum_squad_interval_max'
+        """ > 4th 'destroy' method: randomly chooses a 'k' sized list of substitution squads and does not fix the heuristic solution for these squads 
+              
+              (!) This method needs careful tuning of parameters 'k' and 'y_sum_squad_interval_max
+        """
         # Define 'k' and randomly choose a 'k'-sized list of unique substitution squads -- HARDCODED
         k = 2
         squad_unfixed = set(rnd.sample(substitution_squads, k=k))

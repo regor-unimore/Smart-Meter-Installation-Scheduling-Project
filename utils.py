@@ -15,7 +15,7 @@ def readFile(instance):
         ifile.readlines(2)
         T = int(((ifile.readline()).split())[0])
 
-        # 'N_{j}' traditional meters to be substituted in meter group j
+        # 'Nj' traditional meters to be substituted in meter group j
         ifile.readlines(2)
         N = []
         for _ in range(J):
@@ -25,7 +25,7 @@ def readFile(instance):
         ifile.readlines(2)
         Q = int(((ifile.readline()).split())[0])
 
-        # 'b_{jt}' takes value 1 if substitutions can occur in meter group j (row) during time interval t (column), 0 otherwise
+        # 'bjt' takes value 1 if substitutions can occur in meter group j (row) during time interval t (column), 0 otherwise
         ifile.readlines(2)
         b = []
         for _ in range(J):
@@ -36,14 +36,14 @@ def readFile(instance):
         ifile.readlines(2)
         sigma = int(((ifile.readline()).split())[0])
 
-        # 'S_{jt}' conditional cost savings obtained for meter group j (row) during each time interval t if readings are collected by smart meters instead of traditional meters
+        # 'Sjt' conditional cost savings obtained for meter group j (row) during each time interval t if readings are collected by smart meters instead of traditional meters
         ifile.readlines(2)
         S1 = []
         for _ in range(J):
             line_S1 = list(map(float, (ifile.readline()).split()))
             S1.append(line_S1)
 
-        # 'S_{j}' annual conditional cost savings
+        # 'Sj' annual conditional cost savings
         ifile.readlines(2)
         S2 = []
         for _ in range(J):
