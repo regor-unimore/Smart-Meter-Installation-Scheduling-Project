@@ -3,12 +3,13 @@ from argumentParser import parseArguments
 from parameters import setupParameters, setupIndexes
 import gurobipy as gp
 from gurobipy import GRB
+
 # import numpy as np
 # import scipy.sparse as sp
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
-J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argFolder, args.argInstance)
+J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstance)
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -129,3 +130,12 @@ def createModel():
     model.addConstrs((R[p] == D[p - 2] + r * gp.quicksum((X[varphi] - D[varphi]) for varphi in range((p - 2) + 1)) for p in range(3, P + 1)), name="C18")
 
     return model, x, y, overline_y, z, S, R, X, D
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Check whether the solution is optimal
+# ----------------------------------------------------------------------------------------------------------------------
+def solutionIsOptimal(model):
+    if model.Status == GRB.OPTIMAL:
+        return True
+    else:
+        return False

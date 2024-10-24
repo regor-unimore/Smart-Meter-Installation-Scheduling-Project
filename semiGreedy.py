@@ -8,7 +8,7 @@ import random as rnd
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
-J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argFolder, args.argInstance)
+J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstance)
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # Initialize the random number generator
@@ -205,19 +205,19 @@ def greedyRandomizedConstructiveHeuristics():
                 group_remaining_processing_time[group_random] -= 1
 
                 # Set the value for the heuristic variable
-                solution.update_solution({'y': {(group_random, k, interval): 1}})
+                solution.updateSolution({'y': {(group_random, k, interval): 1}})
 
                 # If the remaining number of meters is greater than or equal to the substitution capacity
                 if group_remaining_meters[group_random] - Q >= 0:
                     # Update 'x'
-                    solution.update_solution({'x': {(group_random, k, interval): solution.x[group_random, k, interval] + Q}})
+                    solution.updateSolution({'x': {(group_random, k, interval): solution.x[group_random, k, interval] + Q}})
 
                     # Update 'group_remaining_meters'
                     group_remaining_meters[group_random] -= Q
                 # If the remaining number of meters is less than to the substitution capacity
                 else:
                     # Update 'x'
-                    solution.update_solution({'x': {(group_random, k, interval): solution.x[group_random, k, interval] + group_remaining_meters[group_random]}})
+                    solution.updateSolution({'x': {(group_random, k, interval): solution.x[group_random, k, interval] + group_remaining_meters[group_random]}})
 
                     # Update 'group_remaining_meters'
                     group_remaining_meters[group_random] -= group_remaining_meters[group_random]
@@ -241,51 +241,51 @@ def greedyRandomizedConstructiveHeuristics():
     # Set the value for 'overline_y'
     for j in meter_groups:
         t = group_completion_time[j]
-        solution.update_solution({'overline_y': {(j, t): 1}})
+        solution.updateSolution({'overline_y': {(j, t): 1}})
 
     # Set the value for 'z'
     for j in meter_groups:
         completion_time = group_completion_time[j]  # Get the completion time for group 'j'
         for t in (t for t in intervals if t > completion_time):  # Loop only for 't > group_completion_time[j]'
             if t > group_completion_time[j]:
-                solution.update_solution({'z': {(j, t): 1}})
+                solution.updateSolution({'z': {(j, t): 1}})
 
     # Update 'S(p)' within the operational horizon
     for p in range(SP):
         start_interval = T * p
         end_interval = T * (p + 1)
-        solution.update_solution({'S': {p: solution.S[p] + sum(S1[j][t] * solution.z[(j, t)] for j in meter_groups for t in range(start_interval, end_interval))}})
+        solution.updateSolution({'S': {p: solution.S[p] + sum(S1[j][t] * solution.z[(j, t)] for j in meter_groups for t in range(start_interval, end_interval))}})
 
     # Update 'S(p)' without the operational horizon
     for p in range(SP, P - 1):
-        solution.update_solution({'S': {p: solution.S[p] + sum(S2[j] for j in meter_groups)}})
+        solution.updateSolution({'S': {p: solution.S[p] + sum(S2[j] for j in meter_groups)}})
 
     # Update 'X(p)' within the operational horizon
     for p in range(SP):
         start_interval = T * p
         end_interval = T * (p + 1)
-        solution.update_solution({'X': {p: solution.X[p] + sum(C * solution.x[(j, k, t)] for j in meter_groups for k in substitution_squads for t in range(start_interval, end_interval))}})
+        solution.updateSolution({'X': {p: solution.X[p] + sum(C * solution.x[(j, k, t)] for j in meter_groups for k in substitution_squads for t in range(start_interval, end_interval))}})
 
     # Update 'D(p)'
     for p in range(1, P + 1):
         start_varphi = max(0, p - DH)
         end_varphi = (p - 1) + 1
-        solution.update_solution({'D': {p: solution.D[p] + (1 / DH) * sum(solution.X[varphi] for varphi in range(start_varphi, end_varphi))}})
+        solution.updateSolution({'D': {p: solution.D[p] + (1 / DH) * sum(solution.X[varphi] for varphi in range(start_varphi, end_varphi))}})
 
     # Update 'R(2)'
-    solution.update_solution({'R': {2: r * solution.X[0]}})
+    solution.updateSolution({'R': {2: r * solution.X[0]}})
 
     # Update 'R(p)'
     for p in range(3, P + 1):
         start_varphi = p - 2
-        solution.update_solution({'R': {p: solution.R[p] + solution.D[p - 2] + r * sum(solution.X[varphi] - solution.D[varphi] for varphi in range(start_varphi + 1))}})
+        solution.updateSolution({'R': {p: solution.R[p] + solution.D[p - 2] + r * sum(solution.X[varphi] - solution.D[varphi] for varphi in range(start_varphi + 1))}})
 
     # Update 'F(p)'
     for p in periods:
-        solution.update_solution({'F': {p: solution.F[p] + (1 - gamma) * (solution.S[p] + solution.R[p]) - solution.X[p] + gamma * solution.D[p]}})
+        solution.updateSolution({'F': {p: solution.F[p] + (1 - gamma) * (solution.S[p] + solution.R[p]) - solution.X[p] + gamma * solution.D[p]}})
 
     # Update 'NPV'
     for p in periods:
-        solution.update_solution({'NPV': solution.NPV + solution.d[p] * solution.F[p]})
+        solution.updateSolution({'NPV': solution.NPV + solution.d[p] * solution.F[p]})
 
     return solution

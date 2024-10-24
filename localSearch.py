@@ -5,7 +5,7 @@ import random as rnd
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
-J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argFolder, args.argInstance)
+J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstance)
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # Initialize the random number generator
@@ -29,7 +29,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
     # Call the 'fix' method based on 'fix_id'
     if fix_id == 1:
         # Message to the user
-        print("\n> Using \'fix\' method no. {}\n".format(fix_id))
+        print("\n> Using \'fix\' method no. {}...\n".format(fix_id))
 
         """ > 1st 'destroy' method: randomly fixes part of the heuristic solution based on 'args.argBeta' """
         # Fix 'y' variables
@@ -52,11 +52,11 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
 
     elif fix_id == 2:
         # Message to the user
-        print("\n  Using \'destroy\' method no. {}\n".format(fix_id))
+        print("\n> Using \'fix\' method no. {}...\n".format(fix_id))
 
         """ > 2nd 'destroy' method: randomly chooses a 'k' sized list of meter groups and does not fix the heuristic solution for these meter groups """
-        # Define 'k' and randomly choose a 'k'-sized set of unique meter groups -- HARDCODED
-        k = 1
+        # Define 'k' and randomly choose a 'k'-sized set of unique meter groups
+        k = int(round(J / 5, 0))
         meter_group_unfixed = set(rnd.sample(meter_groups, k=k))
 
         # Fix 'y' variables
@@ -79,11 +79,11 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
 
     elif fix_id == 3:
         # Message to the user
-        print("\n  Using \'destroy\' method no. {}\n".format(fix_id))
+        print("\n> Using \'fix\' method no. {}...\n".format(fix_id))
 
         """ > 3rd 'destroy' method: randomly chooses a 'k' sized list of intervals and does not fix the heuristic solution for these intervals """
-        # Define 'k' and randomly choose a 'k'-sized list of unique intervals -- HARDCODED
-        k = 26
+        # Define 'k' and randomly choose a 'k'-sized list of unique intervals
+        k = int(round(T / 2, 0))
         interval_unfixed = set(rnd.sample(intervals, k=k))
 
         # Fix 'y' variables
@@ -106,14 +106,14 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
 
     elif fix_id == 4:
         # Message to the user
-        print("\n  Using \'destroy\' method no. {}\n".format(fix_id))
+        print("\n> Using \'fix\' method no. {}...\n".format(fix_id))
 
         """ > 4th 'destroy' method: randomly chooses a 'k' sized list of substitution squads and does not fix the heuristic solution for these squads 
               
               (!) This method needs careful tuning of parameters 'k' and 'y_sum_squad_interval_max
         """
-        # Define 'k' and randomly choose a 'k'-sized list of unique substitution squads -- HARDCODED
-        k = 2
+        # Define 'k' and randomly choose a 'k'-sized list of unique substitution squads
+        k = int(round(K / 4, 0))
         squad_unfixed = set(rnd.sample(substitution_squads, k=k))
 
         # Precompute solution 'y' values for efficiency and identify the 'y' variables to fix
@@ -152,11 +152,11 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
     print('\n> Computing the results...\n')
 
     # Update 'NPV' attribute in the solution
-    solution.update_solution({'NPV': model.ObjVal})
+    solution.updateSolution({'NPV': model.ObjVal})
 
     # Update 'F', 'S', 'R', 'X', and 'D' attributes in the solution
     for p in periods:
-        solution.update_solution({
+        solution.updateSolution({
             'F': {p: (1 - gamma) * (S[p].X + R[p].X) - X[p].X + gamma * D[p].X},
             'S': {p: S[p].X},
             'R': {p: R[p].X},
@@ -167,7 +167,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
     # Update 'overline_y' and 'z' attributes in the solution
     for j in meter_groups:
         for t in intervals:
-            solution.update_solution({
+            solution.updateSolution({
                 'overline_y': {(j, t): overline_y[(j, t)].X},
                 'z': {(j, t): z[(j, t)].X}
             })
@@ -176,7 +176,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D):
     for j in meter_groups:
         for k in substitution_squads:
             for t in intervals:
-                solution.update_solution({
+                solution.updateSolution({
                     'x': {(j, k, t): x[(j, k, t)].X},
                     'y': {(j, k, t): y[(j, k, t)].X}
                 })

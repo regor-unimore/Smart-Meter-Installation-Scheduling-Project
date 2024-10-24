@@ -25,31 +25,34 @@ def parseArguments():
         parser = argparse.ArgumentParser()
 
         # Folder where the instance is located
-        parser.add_argument('-f', '--folder', action="store", type=str, required=True, help="Folder where the instance is located", dest="argFolder")
+        parser.add_argument('--path', action="store", type=str, required=True, help="Path to folder where the instances are located", dest="argPath")
 
         # Name of the instance
-        parser.add_argument('-i', '--instance', action="store", type=str, required=True, help="Name of the instance", dest="argInstance")
+        parser.add_argument('--instance', action="store", type=str, required=True, help="Name of the instance", dest="argInstance")
+
+        # App (i.e., 'model' or 'algorithm')
+        parser.add_argument('--solutionMethod', action="store", type=str, required=True, help="App (i.e., 'model' or 'algorithm')", dest="argSolutionMethod")
 
         # Sorting rule used within the greedy randomized constructive heuristics
-        parser.add_argument('-s', '--sortingRule', action="store", type=str, required=True, help="Sorting rule used within the greedy randomized constructive heuristics (i.e., \'LongestRemainingProcessingTime\', or \'ShortestRemainingProcessingTime\'", dest="argSortingRule")
+        parser.add_argument('--sortingRule', action="store", type=str, required=False, help="Sorting rule used within the greedy randomized constructive heuristics (i.e., \'LongestRemainingProcessingTime\', or \'ShortestRemainingProcessingTime\'", dest="argSortingRule")
 
         # Cardinality of the restricted candidate list in the greedy randomized constructive heuristics
-        parser.add_argument('-a', '--alpha', action="store", type=int, required=True, help="Cardinality of the restricted candidate list in the greedy randomized constructive heuristics", dest="argAlpha")
+        parser.add_argument('--alpha', action="store", type=int, required=False, help="Cardinality of the restricted candidate list in the greedy randomized constructive heuristics", dest="argAlpha")
 
         # Parameter that guides the 'fix' method within the local search
-        parser.add_argument('-b', '--beta', action="store", type=float, required=True, help="Parameter that guides the \'fix\' method within the local search", dest="argBeta")
+        parser.add_argument('--beta', action="store", type=float, required=False, help="Parameter that guides the \'fix\' method within the local search", dest="argBeta")
 
         # Maximum number of iterations in the main loop of the algorithm
-        parser.add_argument('-m', '--maxIter', action="store", type=int, required=True, help="Maximum number of iterations in the main loop of the algorithm", dest="argMaxIter")
+        parser.add_argument('--maxIter', action="store", type=int, required=False, help="Maximum number of iterations in the main loop of the algorithm", dest="argMaxIter")
 
         # Tolerance value for the solver
-        parser.add_argument('-mg', '--mipGap', action="store", type=float, required=True, help="Tolerance value for the solver", dest="argMipGap")
+        parser.add_argument('--mipGap', action="store", type=float, required=True, help="Tolerance value for the solver", dest="argMipGap")
 
         # Time limit for the solver (in seconds)
-        parser.add_argument('-tl', '--timeLimit', action="store", type=float, required=True, help="Time limit for the solver (in seconds)", dest="argTimeLimit")
+        parser.add_argument('--timeLimit', action="store", type=float, required=True, help="Time limit for the solver (in seconds)", dest="argTimeLimit")
 
         # Seed to initialize the random number generator
-        parser.add_argument('-sd', '--seed', action="store", type=int, required=True, help="Seed to initialize the random number generator", dest="argSeed")
+        parser.add_argument('--seed', action="store", type=int, required=False, help="Seed to initialize the random number generator", dest="argSeed")
 
         # Define '_cached_args'
         _cached_args = parser.parse_args()

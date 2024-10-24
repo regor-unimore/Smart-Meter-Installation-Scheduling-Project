@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 # Useful functions for I/O file handling
 # ----------------------------------------------------------------------------------------------------------------------
-def readFile(instance):
+def readInputFile(instance):
     with open(instance, 'r') as ifile:
         # 'J' meter groups
         ifile.readline()
@@ -75,7 +75,25 @@ def readFile(instance):
 
     return J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName
 
-def writeFile(*args):
+def writeOutputModelFile(*args):
+    # args[0] = instanceName
+    # args[1] = model
+    with open('output/results_bc_' + args[0], 'w') as ofile:
+        ofile.write('Instance: {}'.format(args[0]))
+        ofile.write('\nNumConstrs: {}'.format(args[1].NumConstrs))
+        ofile.write('\nNumVars: {}'.format(args[1].NumVars))
+        ofile.write('\nNumNZs: {}'.format(args[1].NumNZs))
+        ofile.write('\nNumIntVars (i.e., this includes both binary variables and general integer variables) : {}'.format(args[1].NumIntVars))
+        ofile.write('\nNumBinVars: {}'.format(args[1].NumBinVars))
+        ofile.write('\nModelName: {}'.format(args[1].ModelName))
+        ofile.write('\nModelSense: {} (\'1\' -- minimization, \'-1\' -- maximization)'.format(args[1].ModelSense))
+        ofile.write('\nObjVal: {:.2f}'.format(args[1].ObjVal))
+        ofile.write('\nObjBound: {:.2f}'.format(args[1].ObjBound))
+        ofile.write('\nMIPGap: {:.2f}'.format(args[1].MIPGap))
+        ofile.write('\nRuntime: {:.2f}'.format(args[1].Runtime))
+        ofile.write('\nStatus: {} (\'2\' -- OPTIMAL)'.format(args[1].Status))
+
+def writeOutputAlgorithmFile(*args):
     # args[0] = instanceName
     # args[1] = best_solution
     # args[2] = computational_tm
@@ -83,7 +101,7 @@ def writeFile(*args):
     # args[4] = meter_groups
     # args[5] = intervals
     # args[6] = substitution_squads
-    with open('output/results_heur_' + args[0], 'w') as ofile:
+    with open('output/results_grasp_' + args[0], 'w') as ofile:
         ofile.write('Instance: {}'.format(args[0]))
         ofile.write('\nNPV: {:.2f}'.format(args[1].NPV))
         ofile.write('\nComputational time: {:.2f}'.format(args[2]))

@@ -4,7 +4,7 @@ from parameters import setupParameters, setupIndexes
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
-J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argFolder, args.argInstance)
+J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstance)
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ class Solution:
         # Computed discounting factors
         self.d = {p: 1 / pow(1 + r, p) for p in periods}
 
-    def update_solution(self, updates):
+    def updateSolution(self, updates):
         """
         Updates the solution with a dictionary of new values.
         The dictionary should contain keys matching the variable names (x, y, etc.)
@@ -68,7 +68,7 @@ class Solution:
             else:
                 raise AttributeError("{} is not a valid attribute of Solution".format(key))
 
-    def update_from_solution(self, other_solution):
+    def updateFromSolution(self, other_solution):
         """Updates the current solution with the values from another solution object."""
         if not isinstance(other_solution, Solution):
             raise TypeError("The provided object must be an instance of the Solution class.")

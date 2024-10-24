@@ -1,5 +1,5 @@
 # import
-import utils
+from utils import readInputFile
 
 # Cache to avoid multiple computations
 _cached_params = None
@@ -8,7 +8,7 @@ _cached_indexes = None
 # ----------------------------------------------------------------------------------------------------------------------
 # Parameters
 # ----------------------------------------------------------------------------------------------------------------------
-def setupParameters(folder, instance):
+def setupParameters(path_to_folder, instance):
     """
     Reads parameters and structures from an input file and caches the results.
 
@@ -27,7 +27,7 @@ def setupParameters(folder, instance):
         print("> Reading input parameters and structures...\n")
 
         # Define '_cached_params'
-        _cached_params = utils.readFile('input/' + folder + '/' + instance)
+        _cached_params = readInputFile(path_to_folder + '/' + instance)
 
     return _cached_params
 
