@@ -39,8 +39,11 @@ def parseArguments():
         # Cardinality of the restricted candidate list in the greedy randomized constructive heuristics
         parser.add_argument('--alpha', action="store", type=int, required=False, help="Cardinality of the restricted candidate list in the greedy randomized constructive heuristics", dest="argAlpha")
 
-        # Parameter that guides the 'fix' method within the local search
-        parser.add_argument('--beta', action="store", type=float, required=False, help="Parameter that guides the \'fix\' method within the local search", dest="argBeta")
+        # Parameter that guides the 1st 'fix' method within the local search
+        parser.add_argument('--beta', action="store", type=float, required=False, help="Parameter that guides the 1st \'fix\' method within the local search", dest="argBeta")
+
+        # Parameter that guides the 2nd, 3rd, and 4th 'fix' methods within the local search
+        parser.add_argument('--gamma', action="store", type=float, required=False, help="Parameter that guides the 2nd, 3rd, and 4th \'fix\' method within the local search", dest="argGamma")
 
         # Maximum number of iterations in the main loop of the algorithm
         parser.add_argument('--maxIter', action="store", type=int, required=False, help="Maximum number of iterations in the main loop of the algorithm", dest="argMaxIter")

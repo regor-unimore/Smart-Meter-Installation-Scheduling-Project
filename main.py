@@ -76,7 +76,7 @@ elif args.argSolutionMethod == 'grasp':
         solution.updateFromSolution(largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D))
 
         # Message for the user
-        print("  Beta: {:.2f}, NPV_curr: {:.2f}\n".format(args.argBeta, solution.NPV))
+        print("  NPV_curr: {:.2f}\n".format(solution.NPV))
 
         # Check whether a new incumbent solution has been found
         if solution.NPV > best_solution.NPV:
