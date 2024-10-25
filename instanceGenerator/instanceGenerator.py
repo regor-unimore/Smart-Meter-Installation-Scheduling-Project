@@ -47,6 +47,9 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
     K = args.argMachines
     instance.write('\n{}'.format(K))
 
+    # 'SP' is the duration of the operational horizon (i.e., in years)
+    SP = 3  # -- HARDCODED
+
     # 'T' time intervals per year
     instance.write('\n\n# \'T\' time intervals per year')
     T = 52 # -- HARDCODED
@@ -210,12 +213,6 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
     # Create 'b' list
     b = [readings[args.argYear][random_keys[j]] for j in range(J)]
 
-    # # --- DEBUG ONLY ---
-    # print('> For debugging...')
-    # for j in range(J):
-    #     print('  {}'.format(b[j]))
-    # print()
-
     # For each meter group, write 'b' list without '[', ']' and ',' characters
     for j in range(J):
         instance.write(' '.join(map(str, b[j])) + '\n') # We need a '\n' less in the following
@@ -266,13 +263,7 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
     instance.write('\n')
 
     # Create 'S1' list
-    S1 = [[round((1 - readings[args.argYear][random_keys[j]][t]) * savings[args.argYear][random_keys[j]] * N[j], 2) for t in range (3 * T)] for j in range(J)]
-
-    # # --- DEBUG ONLY ---
-    # print('> For debugging...')
-    # for j in range(J):
-    #     print('  {}'.format(S1[j]))
-    # print()
+    S1 = [[round((1 - readings[args.argYear][random_keys[j]][t]) * savings[args.argYear][random_keys[j]] * N[j], 2) for t in range (SP * T)] for j in range(J)]
 
     # For each meter group, write 'S1' list without '[', ']' and ',' characters
     for j in range(J):
@@ -283,10 +274,6 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
 
     # Create 'S2' list
     S2 = [round(sum(S1[j][t] for t in range(T)), 2) for j in range(J)]
-
-    # # --- DEBUG ONLY ---
-    # print('> For debugging...')
-    # print('  {}'.format(S2))
 
     # For each meter group, write 'S2' list without '[', ']' and ',' characters
     for j in range(J):
