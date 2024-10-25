@@ -1,6 +1,6 @@
 # Smart-Mater-Installation-Scheduling-Project
 
-Private repository that contains the code and the randomly created instances for "Smart-Meter Installation Scheduling Project".
+Private repository with code and randomly created instances for the "Smart-Meter Installation Scheduling Project".
 
 ## Requirements
-After cloning the repository, create a virtual environment within the project folder running **Python 3.12** and install **gurobipy** package (version 11.0.3).
+After cloning the repository, create a virtual environment in the project folder running **Python 3.12** and install the **gurobipy** package (version 11.0.3).
