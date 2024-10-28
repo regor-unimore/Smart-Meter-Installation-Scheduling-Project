@@ -8,13 +8,13 @@ _cached_indexes = None
 # ----------------------------------------------------------------------------------------------------------------------
 # Parameters
 # ----------------------------------------------------------------------------------------------------------------------
-def setupParameters(path_to_folder, instance):
+def setupParameters(pathToFolder, instanceName):
     """
     Reads parameters and structures from an input file and caches the results.
 
     Args:
-        folder (str): The folder where the instance is located.
-        instance (str): The name of the instance.
+        pathToFolder (str): The folder where the instance is located.
+        instanceName (str): The name of the instance.
 
     Returns:
         tuple: All parameters and structures.
@@ -27,7 +27,7 @@ def setupParameters(path_to_folder, instance):
         print("> Reading input parameters and structures...\n")
 
         # Define '_cached_params'
-        _cached_params = readInputFile(path_to_folder + '/' + instance)
+        _cached_params = readInputFile(pathToFolder + '/' + instanceName)
 
     return _cached_params
 

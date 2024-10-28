@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------------------------------------------------
 # Useful functions for I/O file handling
 # ----------------------------------------------------------------------------------------------------------------------
-def readInputFile(instance):
-    with open(instance, 'r') as ifile:
+def readInputFile(instanceName):
+    with open(instanceName + '.txt', 'r') as ifile:
         # 'J' meter groups
         ifile.readline()
         J = int(((ifile.readline()).split())[0])
@@ -78,7 +78,7 @@ def readInputFile(instance):
 def writeOutputModelFile(*args):
     # args[0] = instanceName
     # args[1] = model
-    with open('output/results_bc_' + args[0], 'w') as ofile:
+    with open('output/results_bc_' + args[0] + '.txt', 'w') as ofile:
         ofile.write('Instance: {}'.format(args[0]))
         ofile.write('\nNumConstrs: {}'.format(args[1].NumConstrs))
         ofile.write('\nNumVars: {}'.format(args[1].NumVars))
@@ -101,10 +101,20 @@ def writeOutputAlgorithmFile(*args):
     # args[4] = meter_groups
     # args[5] = intervals
     # args[6] = substitution_squads
-    with open('output/results_grasp_' + args[0], 'w') as ofile:
+    # args[7] = alpha
+    # args[8] = beta
+    # args[9] = gamma
+    # args[10] = maxIter
+    # args[11] = seed
+    with open('output/results_grasp_' + args[0] + '_' + str(args[7]) + '_' + str(args[8]).replace('.', '_') + '_' + str(args[9]).replace('.', '_') + '_' + str(args[10]) + '_' + str(args[11]) + '.txt', 'w') as ofile:
         ofile.write('Instance: {}'.format(args[0]))
-        ofile.write('\nNPV: {:.2f}'.format(args[1].NPV))
-        ofile.write('\nComputational time: {:.2f}'.format(args[2]))
+        ofile.write('\nObjBest: {:.2f}'.format(args[1].NPV))
+        ofile.write('\nRuntime: {:.2f}'.format(args[2]))
+        ofile.write('\nAlpha: {}'.format(args[7]))
+        ofile.write('\nBeta: {:.2f}'.format(args[8]))
+        ofile.write('\nGamma: {:.2f}'.format(args[9]))
+        ofile.write('\nMaxIter: {}'.format(args[10]))
+        ofile.write('\nSeed: {}'.format(args[11]))
 
         ofile.write('\n\nCash flow statement:')
         ofile.write('\n+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+')

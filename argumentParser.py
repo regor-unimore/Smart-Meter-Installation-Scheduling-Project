@@ -28,7 +28,7 @@ def parseArguments():
         parser.add_argument('--path', action="store", type=str, required=True, help="Path to folder where the instances are located", dest="argPath")
 
         # Name of the instance
-        parser.add_argument('--instance', action="store", type=str, required=True, help="Name of the instance", dest="argInstance")
+        parser.add_argument('--instanceName', action="store", type=str, required=True, help="Name of the instance", dest="argInstanceName")
 
         # App (i.e., 'model' or 'algorithm')
         parser.add_argument('--solutionMethod', action="store", type=str, required=True, help="App (i.e., 'model' or 'algorithm')", dest="argSolutionMethod")

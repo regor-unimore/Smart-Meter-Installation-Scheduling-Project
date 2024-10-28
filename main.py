@@ -10,7 +10,7 @@ import time as tm
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
-J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstance)
+J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstanceName)
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -63,11 +63,6 @@ elif args.argSolutionMethod == 'grasp':
         # Message for the user
         print('  NPV_curr: {:.2f}\n'.format(solution.NPV))
 
-        # Compute the gap between the current solution and the incumbent solution
-        # gap = (best_solution.NPV - solution.NPV) / solution.NPV
-
-        # Check whether the gap between the NPV of the current solution and the NPV of the incumbent solution is less than 5%. If so, try to improve it via local search
-        # if gap < 0.05:
 
         # Message for the user
         print('> Improving the solution via local search...\n')
@@ -108,4 +103,4 @@ elif args.argSolutionMethod == 'grasp':
     print('  NPV_best: {:.2f}'.format(best_solution.NPV))
 
     # Write the best solution to file
-    writeOutputAlgorithmFile(args.argInstance, best_solution, computational_tm, periods, meter_groups, intervals, substitution_squads)
+    writeOutputAlgorithmFile(args.argInstanceName, best_solution, computational_tm, periods, meter_groups, intervals, substitution_squads, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed)
