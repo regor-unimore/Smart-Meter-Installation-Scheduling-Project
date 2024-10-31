@@ -46,10 +46,8 @@ elif args.argSolutionMethod == 'grasp':
     # Get 't1'
     t1 = tm.perf_counter()
 
-    # Initialise 'iteration'
+    # Initialise 'iteration' and 'improvements'
     iteration = 0
-
-    # Initialise 'improvements'
     improvements = 0
 
     # Main loop of the algorithm
@@ -62,7 +60,6 @@ elif args.argSolutionMethod == 'grasp':
 
         # Message for the user
         print('  NPV_curr: {:.2f}\n'.format(solution.NPV))
-
 
         # Message for the user
         print('> Improving the solution via local search...\n')
@@ -87,14 +84,15 @@ elif args.argSolutionMethod == 'grasp':
             # Message for the user
             print('  NPV_incumbent: {:.2f}\n'.format(best_solution.NPV))
 
-        # Update 'iter_curr'
+        # Increment 'iteration'
         iteration += 1
 
-    # Get 't2'
-    t2 = tm.perf_counter()
+        # Check whether the time limit has been reached
+        if tm.perf_counter() - t1 >= 3600:
+            break
 
-    # Compute 'computational_tm' for running the algorithm
-    computational_tm = t2 - t1
+    # Compute 'computational_tm'
+    computational_tm = tm.perf_counter() - t1
 
     # Message for the user
     print('> Process finished! Found {} improvement(s).\n'.format(improvements))
