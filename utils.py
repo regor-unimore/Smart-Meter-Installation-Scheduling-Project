@@ -91,7 +91,7 @@ def writeOutputModelFile(*args):
         ofile.write('\nObjBound: {:.2f}'.format(args[1].ObjBound))
         ofile.write('\nMIPGap: {:.2f}'.format(args[1].MIPGap))
         ofile.write('\nRuntime: {:.2f}'.format(args[1].Runtime))
-        ofile.write('\nStatus: {} (\'2\' -- OPTIMAL)'.format(args[1].Status))
+        ofile.write('\nStatus: {} (2 -- \'OPTIMAL\')'.format(args[1].Status))
 
 def writeOutputAlgorithmFile(*args):
     # args[0] = instanceName
@@ -106,15 +106,17 @@ def writeOutputAlgorithmFile(*args):
     # args[9] = gamma
     # args[10] = maxIter
     # args[11] = seed
+    # args[12] = iterations
     with open('output/results_grasp_' + args[0] + '_' + str(args[7]) + '_' + str(args[8]).replace('.', '_') + '_' + str(args[9]).replace('.', '_') + '_' + str(args[10]) + '_' + str(args[11]) + '.txt', 'w') as ofile:
         ofile.write('Instance: {}'.format(args[0]))
-        ofile.write('\nObjBest: {:.2f}'.format(args[1].NPV))
-        ofile.write('\nRuntime: {:.2f}'.format(args[2]))
         ofile.write('\nAlpha: {}'.format(args[7]))
         ofile.write('\nBeta: {:.2f}'.format(args[8]))
         ofile.write('\nGamma: {:.2f}'.format(args[9]))
         ofile.write('\nMaxIter: {}'.format(args[10]))
         ofile.write('\nSeed: {}'.format(args[11]))
+        ofile.write('\nObjBest: {:.2f}'.format(args[1].NPV))
+        ofile.write('\nRuntime: {:.2f}'.format(args[2]))
+        ofile.write('\nNumIterations: {}'.format(args[12]))
 
         ofile.write('\n\nCash flow statement:')
         ofile.write('\n+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+')

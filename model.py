@@ -132,10 +132,40 @@ def createModel():
     return model, x, y, overline_y, z, S, R, X, D
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Check whether the solution is optimal
+# Get the model status
 # ----------------------------------------------------------------------------------------------------------------------
-def solutionIsOptimal(model):
-    if model.Status == GRB.OPTIMAL:
-        return True
-    else:
-        return False
+def modelStatus(model):
+    if model.Status == GRB.LOADED:
+        return 1
+    elif model.Status == GRB.OPTIMAL:
+        return 2
+    elif model.Status == GRB.INFEASIBLE:
+        return 3
+    elif model.Status == GRB.INF_OR_UNBD:
+        return 4
+    elif model.Status == GRB.UNBOUNDED:
+        return 5
+    elif model.Status == GRB.CUTOFF:
+        return 6
+    elif model.Status == GRB.ITERATION_LIMIT:
+        return 7
+    elif model.Status == GRB.NODE_LIMIT:
+        return 8
+    elif model.Status == GRB.TIME_LIMIT:
+        return 9
+    elif model.Status == GRB.SOLUTION_LIMIT:
+        return 10
+    elif model.Status == GRB.INTERRUPTED:
+        return 11
+    elif model.Status == GRB.NUMERIC:
+        return 12
+    elif model.Status == GRB.SUBOPTIMAL:
+        return 13
+    elif model.Status == GRB.INPROGRESS:
+        return 14
+    elif model.Status == GRB.USER_OBJ_LIMIT:
+        return 15
+    elif model.Status == GRB.WORK_LIMIT:
+        return 16
+    elif model.Status == GRB.MEM_LIMIT:
+        return 17

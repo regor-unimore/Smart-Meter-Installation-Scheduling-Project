@@ -2,7 +2,7 @@
 from argumentParser import parseArguments
 from classes import Solution
 from localSearch import largeNeighborhoodSearch
-from model import createModel
+from model import createModel, modelStatus
 from parameters import setupParameters, setupIndexes
 from semiGreedy import greedyRandomizedConstructiveHeuristics
 from utils import writeOutputModelFile, writeOutputAlgorithmFile
@@ -67,22 +67,24 @@ elif args.argSolutionMethod == 'grasp':
         # Run the local search and update the current solution
         solution.updateFromSolution(largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D))
 
-        # Message for the user
-        print("  NPV_curr: {:.2f}\n".format(solution.NPV))
-
-        # Check whether a new incumbent solution has been found
-        if solution.NPV > best_solution.NPV:
+        # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
+        if modelStatus(model) in [2, 9]:
             # Message for the user
-            print('  New incumbent solution found!\n')
+            print("  NPV_curr: {:.2f}\n".format(solution.NPV))
 
-            # Update 'improvement'
-            improvements += 1
+            # Check whether a new incumbent solution has been found
+            if solution.NPV > best_solution.NPV:
+                # Message for the user
+                print('  New incumbent solution found!\n')
 
-            # Update the best solution
-            best_solution.updateFromSolution(solution)
+                # Update 'improvement'
+                improvements += 1
 
-            # Message for the user
-            print('  NPV_incumbent: {:.2f}\n'.format(best_solution.NPV))
+                # Update the best solution
+                best_solution.updateFromSolution(solution)
+
+                # Message for the user
+                print('  NPV_incumbent: {:.2f}\n'.format(best_solution.NPV))
 
         # Increment 'iteration'
         iteration += 1
@@ -101,4 +103,4 @@ elif args.argSolutionMethod == 'grasp':
     print('  NPV_best: {:.2f}'.format(best_solution.NPV))
 
     # Write the best solution to file
-    writeOutputAlgorithmFile(args.argInstanceName, best_solution, computational_tm, periods, meter_groups, intervals, substitution_squads, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed)
+    writeOutputAlgorithmFile(args.argInstanceName, best_solution, computational_tm, periods, meter_groups, intervals, substitution_squads, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed, iteration)
