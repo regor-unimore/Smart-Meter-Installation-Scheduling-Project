@@ -32,7 +32,7 @@ if args.argSolutionMethod == 'branch-and-cut':
     model.optimize()
 
     # Write the model solution to file
-    writeOutputModelFile(args.argInstance, model)
+    writeOutputModelFile(args.argInstanceName, model)
 
 # Run the algorithm
 elif args.argSolutionMethod == 'grasp':
