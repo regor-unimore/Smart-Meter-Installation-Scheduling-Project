@@ -277,7 +277,7 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
 
     # For each meter group, write 'S2' list without '[', ']' and ',' characters
     for j in range(J):
-        instance.write('\n{}'.format(S2[j]))
+        instance.write('\n{:.2f}'.format(S2[j]))
 
     # 'SP' operational horizon (i.e., number of years)
     instance.write('\n\n# \'SP\' operational horizon (i.e., number of years)')
@@ -291,18 +291,26 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
 
     # 'r' annual cost of capital
     instance.write('\n\n# \'r\' annual cost of capital')
-    r = 0.06 # -- HARDCODED
-    instance.write('\n{}'.format(r))
+
+    # Define a 'r' dictionary with annual costs of capital -- HARDCODED
+    r = {
+        '2021': 0.0740,
+        '2022': 0.0755,
+        '2023': 0.1192,
+        '2024': 0.0743
+    }
+
+    instance.write('\n{:.4f}'.format(r[args.argYear]))
 
     # 'gamma' annual tax
     instance.write('\n\n# \'gamma\' annual tax')
     gamma = 0.25 # --HARDCODED
-    instance.write('\n{}'.format(gamma))
+    instance.write('\n{:.2f}'.format(gamma))
 
     # 'C' investment cost for the purchase and installation of a smart meter
     instance.write('\n\n# \'C\' investment cost for the purchase and installation of a smart meter')
     C = 98.00 # -- HARDCODED
-    instance.write('\n{}'.format(C))
+    instance.write('\n{:.2f}'.format(C))
 
     # 'name' of the instance
     instance.write('\n\n# \'name\' of the instance')
