@@ -302,9 +302,9 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
 
     instance.write('\n{:.4f}'.format(r[args.argYear]))
 
-    # 'gamma' annual tax
-    instance.write('\n\n# \'gamma\' annual tax')
-    gamma = 0.25 # --HARDCODED
+    # 'gamma' annual tax (aka 'IRES' tax rate)
+    instance.write('\n\n# \'gamma\' annual tax rate')
+    gamma = 0.24 # --HARDCODED
     instance.write('\n{:.2f}'.format(gamma))
 
     # 'C' investment cost for the purchase and installation of a smart meter
