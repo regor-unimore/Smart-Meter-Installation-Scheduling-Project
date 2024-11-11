@@ -4,9 +4,6 @@ from parameters import setupParameters, setupIndexes
 import gurobipy as gp
 from gurobipy import GRB
 
-# import numpy as np
-# import scipy.sparse as sp
-
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
 J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstanceName)
@@ -22,14 +19,14 @@ def createModel():
     # Define 'modelName'
     modelName = "SMISP_" + instanceName
 
-    # Tolerance value for the solver
-    gp.setParam("MIPGap", args.argMipGap)
-
-    # Time limit for the solver (in seconds)
-    gp.setParam("TimeLimit", args.argTimeLimit)
-
     # Create the model
     model = gp.Model(modelName)
+
+    # Tolerance value for the solver
+    model.setParam("MIPGap", args.argMipGap)
+
+    # Time limit for the solver (in seconds)
+    model.setParam("TimeLimit", args.argTimeLimit)
 
     """ Create the operational variables """
 

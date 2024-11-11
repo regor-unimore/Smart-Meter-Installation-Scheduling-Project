@@ -1,6 +1,8 @@
 # import
 from argumentParser import parseArguments
 from parameters import setupParameters, setupIndexes
+import math as m
+import numpy as np
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
@@ -10,63 +12,81 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 # ----------------------------------------------------------------------------------------------------------------------
 # Classes
 # ----------------------------------------------------------------------------------------------------------------------
+class Metrics:
+    def __init__(self):
+        # Total runtime
+        self.Runtime = 0.0
+
+        # Iteration counter used in the main loop of the algorithm
+        self.NumIters = 0
+
+        # Number of improvements found by the algorithm
+        self.NumImprovements = 0
+
+        # Number of iterations to find the best solution
+        self.BestIter = 0
+
+        # Runtime to find the best solution
+        self.BestRuntime = 0.0
+
+        # Number of iterations in which 1st 'fix' method was used
+        self.FirstMethodIters = 0
+
+        # Cumulative runtime for 1st 'fix' method was used
+        self.FirstMethodRuntime = 0.0
+
+        # Number of iterations in which 2nd 'fix' method was used
+        self.SecondMethodIters = 0
+
+        # Cumulative runtime for 2nd 'fix' method was used
+        self.SecondMethodRuntime = 0.0
+
+        # Number of iterations in which 3rd 'fix' method was used
+        self.ThirdMethodIters = 0
+
+        # Cumulative runtime for 3rd 'fix' method was used
+        self.ThirdMethodRuntime = 0.0
+
+        # Number of iterations in which 4th 'fix' method was used
+        self.FourthMethodIters = 0
+
+        # Cumulative runtime for 4th 'fix' method was used
+        self.FourthMethodRuntime = 0.0
+
 class Solution:
     def __init__(self):
         # Integer variable 'x' corresponding to the number of smart meters installed in meter group 'j' by substitution squad 'k' during time interval 't' (in the best solution found)
-        self.x = {(j, k, t): 0 for j in meter_groups for k in substitution_squads for t in intervals}
+        self.x = np.zeros((len(meter_groups), len(substitution_squads), len(intervals)), dtype=int)
 
         # Binary variable 'y' taking value 1 if meter group 'j' is served by squad 'k' during time interval 't' and 0 otherwise
-        self.y = {(j, k, t): 0 for j in meter_groups for k in substitution_squads for t in intervals}
+        self.y = np.zeros((len(meter_groups), len(substitution_squads), len(intervals)), dtype=int)
 
         # Binary variable 'overline_y' taking value 1 if installations in meter group 'j' are completed during time interval 't' and 0 otherwise
-        self.overline_y = {(j, t): 0 for j in meter_groups for t in intervals}
+        self.overline_y = np.zeros((len(meter_groups), len(intervals)), dtype=int)
 
         # Binary variable 'z' taking value 1 if meter group 'j' is already smart during time interval 't' and 0 otherwise
-        self.z = {(j, t): 0 for j in meter_groups for t in intervals}
-
-        # Continuous variable 'NPV' corresponding to the Net Present Value
-        self.NPV = 0.0
+        self.z = np.zeros((len(meter_groups), len(intervals)), dtype=int)
 
         # Continuous variable 'S' corresponding to the conditional cost savings
-        self.S = {p: 0.0 for p in periods}
+        self.S = np.zeros(len(periods), dtype=float)
 
         # Continuous variable 'R' corresponding to the additional revenues defined by the Authority
-        self.R = {p: 0.0 for p in periods}
+        self.R = np.zeros(len(periods), dtype=float)
 
         # Continuous variable 'X' corresponding to the capital expenditures
-        self.X = {p: 0.0 for p in periods}
+        self.X = np.zeros(len(periods), dtype=float)
 
         # Continuous variable 'D' corresponding to the depreciation charges
-        self.D = {p: 0.0 for p in periods}
+        self.D = np.zeros(len(periods), dtype=float)
 
-        # Computed cash flows
-        self.F = {p: 0.0 for p in periods}
+        # Cash flows
+        self.F = np.zeros(len(periods), dtype=float)
 
-        # Computed discounting factors
-        self.d = {p: 1 / pow(1 + r, p) for p in periods}
+        # Discounting factors
+        self.d = np.array([1 / pow(1 + r, p) for p in periods])
 
-    def updateSolution(self, updates):
-        """
-        Updates the solution with a dictionary of new values.
-        The dictionary should contain keys matching the variable names (x, y, etc.)
-        and the corresponding values to update.
-
-        Example:
-        updates = {
-            'x': {(j, k, t): new_value, ...},
-            'NPV': new_value,
-            ...
-        }
-        """
-        for key, value in updates.items():
-            if hasattr(self, key):
-                current_value = getattr(self, key)
-                if isinstance(current_value, dict):
-                    current_value.update(value)  # Update the dictionary
-                else:
-                    setattr(self, key, value)  # Set new value for non-dict variables
-            else:
-                raise AttributeError("{} is not a valid attribute of Solution".format(key))
+        # Continuous variable 'NPV' corresponding to the Net Present Value
+        self.NPV = -m.inf
 
     def updateFromSolution(self, other_solution):
         """Updates the current solution with the values from another solution object."""
@@ -74,14 +94,14 @@ class Solution:
             raise TypeError("The provided object must be an instance of the Solution class.")
 
         # Copy all attributes from other_solution
-        self.x.update(other_solution.x)
-        self.y.update(other_solution.y)
-        self.overline_y.update(other_solution.overline_y)
-        self.z.update(other_solution.z)
+        self.x = other_solution.x.copy()
+        self.y = other_solution.y.copy()
+        self.overline_y = other_solution.overline_y.copy()
+        self.z = other_solution.z.copy()
+        self.S = other_solution.S.copy()
+        self.R = other_solution.R.copy()
+        self.X = other_solution.X.copy()
+        self.D = other_solution.D.copy()
+        self.F = other_solution.F.copy()
+        self.d = other_solution.d.copy()
         self.NPV = other_solution.NPV
-        self.S.update(other_solution.S)
-        self.R.update(other_solution.R)
-        self.X.update(other_solution.X)
-        self.D.update(other_solution.D)
-        self.F.update(other_solution.F)
-        self.d.update(other_solution.d)

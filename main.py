@@ -1,6 +1,6 @@
 # import
 from argumentParser import parseArguments
-from classes import Solution
+from classes import Solution, Metrics
 from localSearch import largeNeighborhoodSearch
 from model import createModel, modelStatus
 from parameters import setupParameters, setupIndexes
@@ -43,17 +43,16 @@ elif args.argSolutionMethod == 'grasp':
     # Define object 'best_solution' of class 'Solution'
     best_solution = Solution()
 
-    # Get 't1'
+    # Get 'start_tm'
     t1 = tm.perf_counter()
 
-    # Initialise 'iteration' and 'improvements'
-    iteration = 0
-    improvements = 0
+    # Define object 'algo_metrics' of class 'Metrics'
+    metrics = Metrics()
 
     # Main loop of the algorithm
-    while iteration < args.argMaxIter:
+    while metrics.NumIters < args.argMaxIter:
         # Message for the user
-        print('> Iteration: {}\n'.format(iteration))
+        print('> Iteration: {}\n'.format(metrics.NumIters))
 
         # Run the greedy randomized constructive heuristics to build an initial feasible solution
         solution = greedyRandomizedConstructiveHeuristics()
@@ -65,7 +64,7 @@ elif args.argSolutionMethod == 'grasp':
         print('> Improving the solution via local search...\n')
 
         # Run the local search and update the current solution
-        solution.updateFromSolution(largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D))
+        solution.updateFromSolution(largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metrics))
 
         # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
         if modelStatus(model) in [2, 9]:
@@ -77,30 +76,36 @@ elif args.argSolutionMethod == 'grasp':
                 # Message for the user
                 print('  New incumbent solution found!\n')
 
-                # Update 'improvement'
-                improvements += 1
+                # Update 'BestIter'
+                metrics.BestIter = metrics.NumIters
 
-                # Update the best solution
+                # Update 'BestRuntime'
+                metrics.BestRuntime = tm.perf_counter() - t1
+
+                # Update 'NumImprovements'
+                metrics.NumImprovements += 1
+
+                # Update 'best_solution'
                 best_solution.updateFromSolution(solution)
 
                 # Message for the user
                 print('  NPV_incumbent: {:.2f}\n'.format(best_solution.NPV))
 
-        # Increment 'iteration'
-        iteration += 1
+        # Increment 'NumIters'
+        metrics.NumIters += 1
 
         # Check whether the time limit has been reached
-        if tm.perf_counter() - t1 >= 3600:
+        if tm.perf_counter() - t1 >= 3600.00:
             break
 
-    # Compute 'computational_tm'
-    computational_tm = tm.perf_counter() - t1
+    # Compute 'Runtime'
+    metrics.Runtime = tm.perf_counter() - t1
 
     # Message for the user
-    print('> Process finished! Found {} improvement(s).\n'.format(improvements))
+    print('> Process finished! Found {} improvement(s).\n'.format(metrics.NumImprovements))
 
     # Message for the user
     print('  NPV_best: {:.2f}'.format(best_solution.NPV))
 
     # Write the best solution to file
-    writeOutputAlgorithmFile(args.argInstanceName, best_solution, computational_tm, periods, meter_groups, intervals, substitution_squads, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed, iteration)
+    writeOutputAlgorithmFile(args.argInstanceName, best_solution, metrics, periods, meter_groups, intervals, substitution_squads, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed)
