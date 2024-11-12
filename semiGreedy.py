@@ -4,7 +4,6 @@ from classes import Solution
 from parameters import setupParameters, setupIndexes
 import math as m
 import numpy as np
-import random as rnd
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
@@ -12,7 +11,7 @@ J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParame
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # Initialize the random number generator
-rnd.seed(args.argSeed)
+np.random.default_rng(args.argSeed)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Functions implementing the semi-greedy heuristics used to build an initial feasible solution in the GRASP matheuristics
