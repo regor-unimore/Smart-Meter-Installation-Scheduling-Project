@@ -37,7 +37,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
         print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
 
         # Update number of iterations for 1st 'fix' method
-        metrics.FirstMethodIters += 1
+        metrics.NumItersFirstMethod += 1
 
         """ > 1st 'fix' method: fixes all variables for which a generated random value is greater than 'args.argBeta' """
         # Fix 'y' variables
@@ -63,7 +63,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
         print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
 
         # Update number of iterations for 2nd 'fix' method
-        metrics.SecondMethodIters += 1
+        metrics.NumItersSecondMethod += 1
 
         """ > 2nd 'fix' method: randomly chooses a 'k' sized list of meter groups and fixes all variables for these meter groups """
         # Define 'k' and randomly choose a 'k'-sized set of unique meter groups
@@ -93,7 +93,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
         print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
 
         # Update number of iterations for 3rd 'fix' method
-        metrics.ThirdMethodIters += 1
+        metrics.NumItersThirdMethod += 1
 
         """ > 3rd 'fix' method: randomly chooses a 'k' sized list of intervals and fixes the heuristic solution for these intervals """
         # Define 'k' and randomly choose a 'k'-sized set of unique intervals
@@ -123,7 +123,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
         print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
 
         # Update number of iterations for 4th 'fix' method
-        metrics.FourthMethodIters += 1
+        metrics.NumItersFourthMethod += 1
 
         """ > 4th 'fix' method: randomly chooses a 'k' sized list of substitution squads and fixes the heuristic solution for these squads """
         # Define 'k' and randomly choose a 'k'-sized set of unique substitution squads
@@ -201,15 +201,15 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
     # Update 'metrics'
     if fix_method == 1:
         # Update cumulative runtime for 1st 'fix' method
-        metrics.FirstMethodRuntime += tm.perf_counter() - t2
+        metrics.CumulativeRuntimeFirstMethod += tm.perf_counter() - t2
     elif fix_method == 2:
         # Update cumulative runtime for 2nd 'fix' method
-        metrics.SecondMethodRuntime += tm.perf_counter() - t2
+        metrics.CumulativeRuntimeSecondMethod += tm.perf_counter() - t2
     elif fix_method == 3:
         # Update cumulative runtime for 3rd 'fix' method
-        metrics.ThirdMethodRuntime += tm.perf_counter() - t2
+        metrics.CumulativeRuntimeThirdMethod += tm.perf_counter() - t2
     elif fix_method == 4:
         # Update cumulative runtime for 4th 'fix' method
-        metrics.FourthMethodRuntime += tm.perf_counter() - t2
+        metrics.CumulativeRuntimeFourthMethod += tm.perf_counter() - t2
 
     return solution

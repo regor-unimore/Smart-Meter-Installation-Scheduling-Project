@@ -76,11 +76,11 @@ elif args.argSolutionMethod == 'grasp':
                 # Message for the user
                 print('  New incumbent solution found!\n')
 
-                # Update 'BestIter'
-                metrics.BestIter = metrics.NumIters
+                # Update 'NumItersBest'
+                metrics.NumItersBest = metrics.NumIters
 
-                # Update 'BestRuntime'
-                metrics.BestRuntime = tm.perf_counter() - t1
+                # Update 'RuntimeBest'
+                metrics.RuntimeBest = tm.perf_counter() - t1
 
                 # Update 'NumImprovements'
                 metrics.NumImprovements += 1

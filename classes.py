@@ -24,34 +24,34 @@ class Metrics:
         self.NumImprovements = 0
 
         # Number of iterations to find the best solution
-        self.BestIter = 0
+        self.NumItersBest = 0
 
         # Runtime to find the best solution
-        self.BestRuntime = 0.0
+        self.RuntimeBest = 0.0
 
         # Number of iterations in which 1st 'fix' method was used
-        self.FirstMethodIters = 0
+        self.NumItersFirstMethod = 0
 
         # Cumulative runtime for 1st 'fix' method was used
-        self.FirstMethodRuntime = 0.0
+        self.CumulativeRuntimeFirstMethod = 0.0
 
         # Number of iterations in which 2nd 'fix' method was used
-        self.SecondMethodIters = 0
+        self.NumItersSecondMethod = 0
 
         # Cumulative runtime for 2nd 'fix' method was used
-        self.SecondMethodRuntime = 0.0
+        self.CumulativeRuntimeSecondMethod = 0.0
 
         # Number of iterations in which 3rd 'fix' method was used
-        self.ThirdMethodIters = 0
+        self.NumItersThirdMethod = 0
 
         # Cumulative runtime for 3rd 'fix' method was used
-        self.ThirdMethodRuntime = 0.0
+        self.CumulativeRuntimeThirdMethod = 0.0
 
         # Number of iterations in which 4th 'fix' method was used
-        self.FourthMethodIters = 0
+        self.NumItersFourthMethod = 0
 
         # Cumulative runtime for 4th 'fix' method was used
-        self.FourthMethodRuntime = 0.0
+        self.CumulativeRuntimeFourthMethod = 0.0
 
 class Solution:
     def __init__(self):
