@@ -141,7 +141,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
         y_sum_squad_interval = np.array([sum(solution.y[j, k, t] for t in intervals for k in squad_fixed) for j in meter_groups])
 
         # Define the maximum number of intervals in which 'fixed' substitution squads may have worked in each meter group 'j' (could tune this value) -- HARDCODED
-        y_sum_squad_interval_max = int(round(0.05 * (SP * T), 0))
+        y_sum_squad_interval_max = int(round(0.10 * (SP * T), 0))
 
         # Fix 'overline_y' variables (only if 'fixed' substitution squads has been working in meter group 'j' for at least 'y_sum_squad_interval_max' intervals)
         overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.overline_y[j, t] == 1 and y_sum_squad_interval[j] >= y_sum_squad_interval_max])
