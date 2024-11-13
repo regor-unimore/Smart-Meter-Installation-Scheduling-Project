@@ -4,6 +4,7 @@ from classes import Solution
 from parameters import setupParameters, setupIndexes
 import math as m
 import numpy as np
+import random as rnd
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
@@ -11,7 +12,7 @@ J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParame
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # Initialize the random number generator
-np.random.default_rng(args.argSeed)
+rnd.seed(args.argSeed)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Functions implementing the semi-greedy heuristics used to build an initial feasible solution in the GRASP matheuristics
@@ -173,13 +174,10 @@ def greedyRandomizedConstructiveHeuristics():
                         # Update the index
                         group_index += 1
 
-            # Convert 'group_restricted_candidate_list' into a 1D NumPy array
-            group_restricted_candidate_list = np.array(group_restricted_candidate_list)
-
             # If 'group_restricted_candidate_list' is not empty and substitution squad 'k' is idle
-            if group_restricted_candidate_list.size > 0 and squad_assignment[k] == 0:
+            if group_restricted_candidate_list and squad_assignment[k] == 0:
                 # Randomly choose a meter group from the 'restricted_candidate_list'
-                group_random = np.random.choice(group_restricted_candidate_list)
+                group_random = rnd.choice(group_restricted_candidate_list)
 
                 # Select meter group 'j' in 'selected list'
                 group_selected[group_random] = 1
