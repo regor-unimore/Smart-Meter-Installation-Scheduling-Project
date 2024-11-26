@@ -28,6 +28,18 @@ def createModel():
     # Time limit for the solver (in seconds)
     model.setParam("TimeLimit", args.argTimeLimit)
 
+    # Thread count for the solver
+    model.setParam("Threads", args.argThreads)
+
+    # Global cut control (i.e, 3 very aggressive)
+    # model.setParam("Cuts", 3)
+
+    # MIP solver focus (i.e, 2 to focus on proving optimality)
+    # model.setParam("MIPFocus", 2)
+
+    # Presolve level (i.e., 2 aggressive)
+    # model.setParam("Presolve", 2)
+
     """ Create the operational variables """
 
     # Integer variable corresponding to the number of smart meters installed in meter group 'j' by substitution squad 'k' during time interval 't'

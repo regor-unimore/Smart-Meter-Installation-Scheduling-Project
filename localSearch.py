@@ -31,6 +31,9 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
     # Randomly choose a 'fix' method
     fix_method = rnd.choice([1, 2, 3, 4])
 
+    # Update current 'fix' method
+    metrics.FixMethod = fix_method
+
     # Call the 'fix' method based on 'fix_method'
     if fix_method == 1:
         # Message to the user

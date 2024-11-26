@@ -72,7 +72,7 @@ elif args.argSolutionMethod == 'grasp':
             print("  NPV_curr: {:.2f}\n".format(solution.NPV))
 
             # Check whether a new incumbent solution has been found
-            if solution.NPV > best_solution.NPV:
+            if solution.NPV - best_solution.NPV > 0.001:
                 # Message for the user
                 print('  New incumbent solution found!\n')
 
@@ -82,8 +82,21 @@ elif args.argSolutionMethod == 'grasp':
                 # Update 'RuntimeBest'
                 metrics.RuntimeBest = tm.perf_counter() - t1
 
+                # Update 'FixMethodBest'
+                metrics.FixMethodBest = metrics.FixMethod
+
                 # Update 'NumImprovements'
                 metrics.NumImprovements += 1
+
+                # Update 'NumImprovementsFirstMethod', 'NumImprovementsSecondMethod', 'NumImprovementsThirdMethod', or 'NumImprovementsFourthMethod'
+                if metrics.FixMethod == 1:
+                    metrics.NumImprovementsFirstMethod += 1
+                elif metrics.FixMethod == 2:
+                    metrics.NumImprovementsSecondMethod += 1
+                elif metrics.FixMethod == 3:
+                    metrics.NumImprovementsThirdMethod += 1
+                elif metrics.FixMethod == 4:
+                    metrics.NumImprovementsFourthMethod += 1
 
                 # Update 'best_solution'
                 best_solution.updateFromSolution(solution)
