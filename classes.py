@@ -62,22 +62,13 @@ class Metrics:
         # Number of improvements found by the 3rd 'fix' method
         self.NumImprovementsThirdMethod = 0
 
-        # Number of iterations in which 4th 'fix' method was used
-        self.NumItersFourthMethod = 0
-
-        # Cumulative runtime for 4th 'fix' method was used
-        self.CumulativeRuntimeFourthMethod = 0.0
-
-        # Number of improvements found by the 4th 'fix' method
-        self.NumImprovementsFourthMethod = 0
-
 class Solution:
     def __init__(self):
-        # Integer variable 'x' corresponding to the number of smart meters installed in meter group 'j' by substitution squad 'k' during time interval 't' (in the best solution found)
-        self.x = np.zeros((len(meter_groups), len(substitution_squads), len(intervals)), dtype=int)
+        # Integer variable 'x' corresponding to the number of smart meters installed in meter group 'j' during time interval 't'
+        self.x = np.zeros((len(meter_groups), len(intervals)), dtype=int)
 
-        # Binary variable 'y' taking value 1 if meter group 'j' is served by squad 'k' during time interval 't' and 0 otherwise
-        self.y = np.zeros((len(meter_groups), len(substitution_squads), len(intervals)), dtype=int)
+        # Binary variable 'y' taking value 1 if meter group 'j' is served time interval 't' and 0 otherwise
+        self.y = np.zeros((len(meter_groups), len(intervals)), dtype=int)
 
         # Binary variable 'overline_y' taking value 1 if installations in meter group 'j' are completed during time interval 't' and 0 otherwise
         self.overline_y = np.zeros((len(meter_groups), len(intervals)), dtype=int)

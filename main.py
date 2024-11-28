@@ -88,15 +88,13 @@ elif args.argSolutionMethod == 'grasp':
                 # Update 'NumImprovements'
                 metrics.NumImprovements += 1
 
-                # Update 'NumImprovementsFirstMethod', 'NumImprovementsSecondMethod', 'NumImprovementsThirdMethod', or 'NumImprovementsFourthMethod'
+                # Update 'NumImprovementsFirstMethod', 'NumImprovementsSecondMethod', 'NumImprovementsThirdMethod'
                 if metrics.FixMethod == 1:
                     metrics.NumImprovementsFirstMethod += 1
                 elif metrics.FixMethod == 2:
                     metrics.NumImprovementsSecondMethod += 1
                 elif metrics.FixMethod == 3:
                     metrics.NumImprovementsThirdMethod += 1
-                elif metrics.FixMethod == 4:
-                    metrics.NumImprovementsFourthMethod += 1
 
                 # Update 'best_solution'
                 best_solution.updateFromSolution(solution)
@@ -121,4 +119,4 @@ elif args.argSolutionMethod == 'grasp':
     print('  NPV_best: {:.2f}'.format(best_solution.NPV))
 
     # Write the best solution to file
-    writeOutputAlgorithmFile(args.argInstanceName, best_solution, metrics, periods, meter_groups, intervals, substitution_squads, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed)
+    writeOutputAlgorithmFile(args.argInstanceName, best_solution, metrics, periods, meter_groups, intervals, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed)

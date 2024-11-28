@@ -31,22 +31,13 @@ def createModel():
     # Thread count for the solver
     model.setParam("Threads", args.argThreads)
 
-    # Global cut control (i.e, 3 very aggressive)
-    # model.setParam("Cuts", 3)
-
-    # MIP solver focus (i.e, 2 to focus on proving optimality)
-    # model.setParam("MIPFocus", 2)
-
-    # Presolve level (i.e., 2 aggressive)
-    # model.setParam("Presolve", 2)
-
     """ Create the operational variables """
 
     # Integer variable corresponding to the number of smart meters installed in meter group 'j' by substitution squad 'k' during time interval 't'
-    x = model.addVars(meter_groups, substitution_squads, intervals, lb=0.0, ub=Q, obj=0.0, vtype=GRB.INTEGER, name="x")
+    x = model.addVars(meter_groups, intervals, lb=0.0, ub=Q, obj=0.0, vtype=GRB.INTEGER, name="x")
 
     # Binary variable taking value 1 if meter group 'j' is served by squad 'k' during time interval 't' and 0 otherwise
-    y = model.addVars(meter_groups, substitution_squads, intervals, lb=0.0, ub=1.0, obj=0.0, vtype=GRB.BINARY, name="y")
+    y = model.addVars(meter_groups, intervals, lb=0.0, ub=1.0, obj=0.0, vtype=GRB.BINARY, name="y")
 
     # Binary variable taking value 1 if installations in meter group 'j' are completed during time interval 't' and 0 otherwise
     overline_y = model.addVars(meter_groups, intervals, lb=0.0, ub=1.0, obj=0.0, vtype=GRB.BINARY, name="overline_y")
@@ -85,28 +76,28 @@ def createModel():
     model.addConstrs((z[j, t] <= gp.quicksum(overline_y[j, tau] for tau in range(t)) for j in meter_groups for t in intervals), name="C3")
 
     # Constraints (4) express the condition for completing the installations for each meter group 'j'
-    model.addConstrs((N[j] * overline_y[j, t] <= gp.quicksum(x[j, k, tau] for k in substitution_squads for tau in range(t + 1)) for j in meter_groups for t in intervals), name="C4")
+    model.addConstrs((N[j] * overline_y[j, t] <= gp.quicksum(x[j, tau] for tau in range(t + 1)) for j in meter_groups for t in intervals), name="C4")
 
-    # Constraints (5) limit the capacity per time interval of each substitution squad 'k'
+    # Constraints (5) limit the capacity per time interval
     # AGGREGATE SUM: FULL
-    # model.addConstrs((gp.quicksum(x[j, k, t] for j in meter_groups) <= Q for k in substitution_squads for t in intervals), name="C5")
+    # model.addConstrs((gp.quicksum(x[j, t] for j in meter_groups) <= K * Q for t in intervals), name="C5")
     # AGGREGATE SUM: SIMPLE
-    model.addConstrs((x.sum("*", k, t) <= Q for k in substitution_squads for t in intervals), name="C5")
+    model.addConstrs((x.sum("*", t) <= K * Q for t in intervals), name="C5")
 
     # Constraints (6) impose that a single substitution squad 'k' can serve a maximum of 'sigma' meter groups during the same time interval 't'
     # AGGREGATE SUM: FULL
-    # model.addConstrs((gp.quicksum(y[j, k, t] for j in meter_groups) <= sigma for k in substitution_squads for t in intervals), name="C6")
+    # model.addConstrs((gp.quicksum(y[j, t] for j in meter_groups) <= K * sigma for t in intervals), name="C6")
     # AGGREGATE SUM: SIMPLE
-    model.addConstrs((y.sum("*", k, t) <= sigma for k in substitution_squads for t in intervals), name="C6")
+    model.addConstrs((y.sum("*", t) <= K * sigma for t in intervals), name="C6")
 
     # Constraints (7) establish the connection between variables 'x' and 'y'
-    model.addConstrs((x[j, k, t] <= min(N[j], Q) * y[j, k, t] for j in meter_groups for k in substitution_squads for t in intervals), name="C7")
+    model.addConstrs((x[j, t] <= min(N[j], Q) * y[j, t] for j in meter_groups for t in intervals), name="C7")
 
     # Constraints (8) impose that substitutions can occur in meter group 'j' during time interval 't' only if readings are not performed
     # AGGREGATE SUM: FULL
-    # model.addConstrs((gp.quicksum(y[j, k, t] for k in substitution_squads) <= b[j][t] * (1 - gp.quicksum(overline_y[j, tau] for tau in range(t))) for j in meter_groups for t in intervals), name="C8")
+    # model.addConstrs((y[j, t] <= b[j][t] * (1 - gp.quicksum(overline_y[j, tau] for tau in range(t))) for j in meter_groups for t in intervals), name="C8")
     # AGGREGATE SUM: SIMPLE
-    model.addConstrs((y.sum(j, "*", t) <= b[j][t] * (1 - gp.quicksum(overline_y[j, tau] for tau in range(t))) for j in meter_groups for t in intervals), name="C8")
+    model.addConstrs((y[j, t] <= b[j][t] * (1 - gp.quicksum(overline_y[j, tau] for tau in range(t))) for j in meter_groups for t in intervals), name="C8")
 
     # Constraints (9)
     model.addConstrs((S[p] == gp.quicksum(S1[j][t] * z[j, t] for j in meter_groups for t in range(T * p, T * (p + 1))) for p in range(SP)), name="C9")
@@ -118,7 +109,7 @@ def createModel():
     model.addConstrs((S[p] == 0 for p in [P - 1, P]), name="C11")
 
     # Constraints (12)
-    model.addConstrs((X[p] == C * gp.quicksum(x[j, k, t] for j in meter_groups for k in substitution_squads for t in range(T * p, T * (p + 1))) for p in range(SP)), name="C12")
+    model.addConstrs((X[p] == C * gp.quicksum(x[j, t] for j in meter_groups for t in range(T * p, T * (p + 1))) for p in range(SP)), name="C12")
 
     # Constraints (13)
     model.addConstrs((X[p] == 0 for p in range(SP, P + 1)), name="C13")

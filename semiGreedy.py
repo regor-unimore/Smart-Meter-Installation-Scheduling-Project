@@ -149,9 +149,9 @@ def greedyRandomizedConstructiveHeuristics():
         # Initialise 'assignment_squad'
         squad_assignment = np.zeros(len(substitution_squads), dtype=int)
 
-        # Assignment of meter groups (randomly chosen from the restricted candidate list) to substitution squads
+        # Assignment of meter groups (randomly chosen from the restricted candidate list)
         for k in substitution_squads:
-            # Create a restricted candidate list of meter groups that can be assigned to squad 'k' (i.e., if 'ALPHA' = 1, we are computing the constructive greedy solution)
+            # Create a restricted candidate list of meter groups that can be assigned (i.e., if 'ALPHA' = 1, we are computing the constructive greedy solution)
             group_restricted_candidate_list = []
 
             # Scroll the list until you reach the given cardinality
@@ -163,7 +163,7 @@ def greedyRandomizedConstructiveHeuristics():
                     # Update the index
                     group_index += 1
                 else:
-                    # If meter group 'group_index' in 'group_candidate_list' can be assigned in the current interval and has not been assigned to any substitution squad yet
+                    # If meter group 'group_index' in 'group_candidate_list' can be assigned in the current interval and has not been assigned yet
                     if group_selected[group_candidate_list[group_index]] == -1:
                         # Append the element to the restricted candidate list of meter groups
                         group_restricted_candidate_list.append(group_candidate_list[group_index])
@@ -186,24 +186,27 @@ def greedyRandomizedConstructiveHeuristics():
                 group_remaining_processing_time[group_random] -= 1
 
                 # Set the value for the heuristic variable
-                solution.y[group_random, k, interval] = 1
+                # solution.y[group_random, k, interval] = 1
+                solution.y[group_random, interval] = 1
 
                 # If the remaining number of meters is greater than or equal to the substitution capacity
                 if group_remaining_meters[group_random] - Q >= 0:
                     # Update 'x'
-                    solution.x[group_random, k, interval] = Q
+                    # solution.x[group_random, k, interval] = Q
+                    solution.x[group_random, interval] = Q
 
                     # Update 'group_remaining_meters'
                     group_remaining_meters[group_random] -= Q
                 # If the remaining number of meters is less than to the substitution capacity
                 else:
                     # Update 'x'
-                    solution.x[group_random, k, interval] = group_remaining_meters[group_random]
+                    # solution.x[group_random, k, interval] = group_remaining_meters[group_random]
+                    solution.x[group_random, interval] = group_remaining_meters[group_random]
 
                     # Update 'group_remaining_meters'
                     group_remaining_meters[group_random] -= group_remaining_meters[group_random]
 
-                # Assign substitution squad 'k' to meter group 'j'
+                # Substitution squad 'k' has been used
                 squad_assignment[k] = 1
 
         # Check if the selected meter groups have been completed and retrieve the completion time
@@ -245,7 +248,7 @@ def greedyRandomizedConstructiveHeuristics():
     for p in range(SP):
         start_interval = T * p
         end_interval = T * (p + 1)
-        solution.X[p] = sum(C * solution.x[j, k, t] for j in meter_groups for k in substitution_squads for t in range(start_interval, end_interval))
+        solution.X[p] = sum(C * solution.x[j, t] for j in meter_groups for t in range(start_interval, end_interval))
 
     # Update 'D(p)'
     for p in range(1, P + 1):
