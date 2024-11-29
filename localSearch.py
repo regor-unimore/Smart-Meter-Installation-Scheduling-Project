@@ -1,6 +1,7 @@
 # import
 from argumentParser import parseArguments
 from parameters import setupParameters, setupIndexes
+import math as m
 import numpy as np
 import random as rnd
 import time as tm
@@ -70,7 +71,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
 
         """ > 2nd 'fix' method: randomly chooses a 'k' sized list of meter groups and fixes all variables for these meter groups """
         # Define 'k' and randomly choose a 'k'-sized set of unique meter groups
-        k = int(round(J * args.argGamma, 0))
+        k = int(m.ceil(J * args.argGamma))
         meter_group_fixed = set(rnd.sample(meter_groups, k=k))
 
         # Fix 'y' variables
@@ -98,10 +99,11 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
         # Update number of iterations for 3rd 'fix' method
         metrics.NumItersThirdMethod += 1
 
-        """ > 3rd 'fix' method: randomly chooses a 'k' sized list of intervals and fixes the heuristic solution for these intervals """
-        # Define 'k' and randomly choose a 'k'-sized set of unique intervals
-        k = int(round((SP * T) * args.argGamma, 0))
-        interval_fixed = set(rnd.sample(intervals, k=k))
+        """ > 3rd 'fix' method: randomly chooses a starting interval and fixes the heuristic solution for 'k' intervals from this """
+        # Define 'k', randomly choose 'start_interval', and define a 'k'-sized set of intervals from 'start_interval'
+        k = int(m.ceil((SP * T) * args.argGamma))
+        start_interval = rnd.choice(intervals)
+        interval_fixed = set((start_interval + i) % len(intervals) for i in range(k))
 
         # Fix 'y' variables
         y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.y[j, t] == 1 and t in interval_fixed])
