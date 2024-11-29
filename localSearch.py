@@ -15,7 +15,7 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 rnd.seed(args.argSeed)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Functions implementing the large neighborhood search used to improve the solution built through the semi-greedy
+# Function(s) implementing the large neighborhood search heuristic used to improve the semi-greedy solution
 # ----------------------------------------------------------------------------------------------------------------------
 def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metrics):
     # Get 't2'

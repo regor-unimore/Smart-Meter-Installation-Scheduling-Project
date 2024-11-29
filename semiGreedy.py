@@ -15,7 +15,7 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 rnd.seed(args.argSeed)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Functions implementing the semi-greedy heuristics used to build an initial feasible solution in the GRASP matheuristics
+# Function(s) implementing the semi-greedy heuristics used to build an initial feasible solution
 # ----------------------------------------------------------------------------------------------------------------------
 def srptSort(interval, group_remaining_processing_time):
     # Define 'outlook' (i.e., a supporting variable that indicates the number of periods ahead to consider for the next reading -- HARDCODED
