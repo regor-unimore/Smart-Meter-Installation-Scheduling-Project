@@ -10,7 +10,7 @@ J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParame
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Create the MILP model
+# Function(s) for the MILP model
 # ----------------------------------------------------------------------------------------------------------------------
 def createModel():
     # Message for the user
@@ -131,9 +131,6 @@ def createModel():
 
     return model, x, y, overline_y, z, S, R, X, D
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Get the model status
-# ----------------------------------------------------------------------------------------------------------------------
 def modelStatus(model):
     if model.Status == GRB.LOADED:
         return 1
@@ -169,3 +166,14 @@ def modelStatus(model):
         return 16
     elif model.Status == GRB.MEM_LIMIT:
         return 17
+
+def solutionCallback(model, where, cbFilename):
+    if where == GRB.Callback.MIPSOL:
+        # MIP solution callback
+        nodeCount = model.cbGet(GRB.Callback.MIPSOL_NODCNT)
+        incumbent = model.cbGet(GRB.Callback.MIPSOL_OBJ)
+        runtime = model.cbGet(GRB.Callback.RUNTIME)
+        solutionCount = model.cbGet(GRB.Callback.MIPSOL_SOLCNT)
+
+        with open('callbacks/results_bc_' + cbFilename + '.txt', 'a') as cbFile:
+            cbFile.write(f"\n| {nodeCount:>15.0f} | {incumbent:>15.2f} | {runtime:>15.2f} | {solutionCount:>15.0f} |")

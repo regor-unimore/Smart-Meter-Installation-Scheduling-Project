@@ -2,7 +2,7 @@
 from argumentParser import parseArguments
 from classes import Solution, Metrics
 from localSearch import largeNeighborhoodSearch
-from model import createModel, modelStatus
+from model import createModel, modelStatus, solutionCallback
 from parameters import setupParameters, setupIndexes
 from semiGreedy import greedyRandomizedConstructiveHeuristics
 from utils import writeOutputModelFile, writeOutputAlgorithmFile
@@ -18,7 +18,7 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Create the model
-model, x, y, overline_y, z, S, R, X, D = createModel()
+m, x, y, overline_y, z, S, R, X, D = createModel()
 
 # Select the app based on 'argApp'
 
@@ -28,11 +28,21 @@ if args.argSolutionMethod == 'branch-and-cut':
     # Message for the user
     print('> Solving the model...\n')
 
+    # Clear the output file at the start
+    with open('callbacks/results_bc_' + instanceName + '.txt', "w") as cbFile:
+        cbFile.write("MIP solution callback(s):")
+        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
+        cbFile.write("\n|   Solution Node |       Incumbent |            Time |  Solution Count |")
+        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
+
     # Solve the model
-    model.optimize()
+    m.optimize(lambda model, where: solutionCallback(model, where, instanceName))
+
+    with open('callbacks/results_bc_' + instanceName + '.txt', "a") as cbFile:
+        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
 
     # Write the model solution to file
-    writeOutputModelFile(args.argInstanceName, model)
+    writeOutputModelFile(args.argInstanceName, m)
 
 # Run the algorithm
 elif args.argSolutionMethod == 'grasp':
@@ -64,10 +74,10 @@ elif args.argSolutionMethod == 'grasp':
         print('> Improving the solution via local search...\n')
 
         # Run the local search and update the current solution
-        solution.updateFromSolution(largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metrics))
+        solution.updateFromSolution(largeNeighborhoodSearch(solution, m, x, y, overline_y, z, S, R, X, D, metrics))
 
         # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
-        if modelStatus(model) in [2, 9]:
+        if modelStatus(m) in [2, 9]:
             # Message for the user
             print("  NPV_curr: {:.2f}\n".format(solution.NPV))
 
