@@ -1,5 +1,6 @@
 # import
 from argumentParser import parseArguments
+from model import modelStatus
 from parameters import setupParameters, setupIndexes
 import math as m
 import numpy as np
@@ -132,24 +133,37 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
     # Message for the user
     print('\n> Computing the results...\n')
 
-    # Update 'NPV' attribute in the solution
-    solution.NPV = model.ObjVal
+    # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
+    if modelStatus(model) in [2, 9]:
 
-    # Update 'F', 'S', 'R', 'X', and 'D' attributes in the solution
-    for p in periods:
-        solution.F[p] = (1 - gamma) * (S[p].X + R[p].X) - X[p].X + gamma * D[p].X
-        solution.S[p] = S[p].X
-        solution.R[p] = R[p].X
-        solution.X[p] = X[p].X
-        solution.D[p] = D[p].X
+        # Update 'NPV' attribute in the solution
+        solution.NPV = model.ObjVal
 
-    # Update 'x', 'y', 'overline_y', and 'z' attributes in the solution
-    for j in meter_groups:
-        for t in intervals:
-            solution.x[j, t] = x[j, t].X
-            solution.y[j, t] = y[j, t].X
-            solution.overline_y[j, t] = overline_y[j, t].X
-            solution.z[j, t] = z[j, t].X
+        # Update 'F', 'S', 'R', 'X', and 'D' attributes in the solution
+        for p in periods:
+            try:
+                solution.F[p] = (1 - gamma) * (S[p].X + R[p].X) - X[p].X + gamma * D[p].X
+                solution.S[p] = S[p].X
+                solution.R[p] = R[p].X
+                solution.X[p] = X[p].X
+                solution.D[p] = D[p].X
+            except AttributeError:
+                print(f"Error: Unable to retrieve attribute 'X' for period {p}. Skipping...\n")
+                continue
+
+        # Update 'x', 'y', 'overline_y', and 'z' attributes in the solution
+        for j in meter_groups:
+            for t in intervals:
+                try:
+                    solution.x[j, t] = x[j, t].X
+                    solution.y[j, t] = y[j, t].X
+                    solution.overline_y[j, t] = overline_y[j, t].X
+                    solution.z[j, t] = z[j, t].X
+                except AttributeError:
+                    print(f"Error: Unable to retrieve attribute 'X' for meter group {j}, interval {t}. Skipping...\n")
+                    continue
+    else:
+        print("> WARNING: Model did not return a feasible or optimal solution. Skipping update...\n")
 
     # Unfix variables
     for j, t in y_fixed:
