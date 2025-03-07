@@ -48,6 +48,12 @@ def parseArguments():
         # Maximum number of iterations in the main loop of the algorithm
         parser.add_argument('--maxIter', action="store", type=int, required=False, help="Maximum number of iterations in the main loop of the algorithm", dest="argMaxIter")
 
+        # Maximum number of iterations in the local search
+        parser.add_argument('--maxLocalSearchIter', action="store", type=int, required=False, help="Maximum number of iterations in the local search", dest="argMaxLocalSearchIter")
+
+        # Maximum number of iterations without improvement in the local search
+        parser.add_argument('--maxNoImprovementIter', action="store", type=int, required=False, help="Maximum number of iterations without improvement in the local search", dest="argNoImprovementIter")
+
         # Tolerance value for the solver
         parser.add_argument('--mipGap', action="store", type=float, required=True, help="Tolerance value for the solver", dest="argMipGap")
 

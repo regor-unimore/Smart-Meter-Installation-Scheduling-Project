@@ -18,7 +18,7 @@ rnd.seed(args.argSeed)
 # ----------------------------------------------------------------------------------------------------------------------
 # Function(s) implementing the large neighborhood search heuristic used to improve the semi-greedy solution
 # ----------------------------------------------------------------------------------------------------------------------
-def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metrics):
+def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metrics):
     # Get 't2'
     t2 = tm.perf_counter()
 
@@ -31,7 +31,7 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
     model.reset()
 
     # Randomly choose a 'fix' method
-    fix_method = rnd.choice([1, 2, 3])
+    fix_method = rnd.choice([1, 2, 3, 4])
 
     # Update current 'fix' method
     metrics.FixMethod = fix_method
@@ -70,8 +70,8 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
         # Update number of iterations for 2nd 'fix' method
         metrics.NumItersSecondMethod += 1
 
-        """ > 2nd 'fix' method: randomly chooses a 'k' sized list of meter groups and fixes all variables for these meter groups """
-        # Define 'k' and randomly choose a 'k'-sized set of unique meter groups
+        """ > 2nd 'fix' method: randomly chooses a 'k'-size list of meter groups and fixes all variables for these meter groups """
+        # Define 'k' and randomly choose a 'k'-size set of unique meter groups
         k = int(m.ceil(J * args.argGamma))
         meter_group_fixed = set(rnd.sample(meter_groups, k=k))
 
@@ -100,8 +100,8 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
         # Update number of iterations for 3rd 'fix' method
         metrics.NumItersThirdMethod += 1
 
-        """ > 3rd 'fix' method: randomly chooses a starting interval and fixes the heuristic solution for 'k' intervals from this """
-        # Define 'k', randomly choose 'start_interval', and define a 'k'-sized set of intervals from 'start_interval'
+        """ > 3rd 'fix' method: randomly chooses a starting interval and fixes all variables for 'k' intervals from this (i.e., re-starting from the beginning if necessary) """
+        # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
         k = int(m.ceil((SP * T) * args.argGamma))
         start_interval = rnd.choice(intervals)
         interval_fixed = set((start_interval + i) % len(intervals) for i in range(k))
@@ -120,6 +120,41 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
 
         # Fix 'z' variables
         z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.z[j, t] == 1 and t in interval_fixed])
+
+        for j, t in z_fixed:
+            z[j, t].LB = 1.0
+
+    elif fix_method == 4:
+        # Message to the user
+        print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
+
+        # Update number of iterations for 4th 'fix' method
+        metrics.NumItersFourthMethod += 1
+
+        """ > 4th 'fix' method: randomly chooses a 'k'-size list of meter groups, a starting interval, and fixes all variables outside the 'k' intervals from this for meter groups that are not in the list """
+        # Define 'k' and randomly choose a 'k'-size set of unique meter groups
+        k_meter = int(m.ceil(J * args.argGamma))
+        meter_group_fixed = set(rnd.sample(meter_groups, k=k_meter))
+
+        # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
+        k_interval = int(m.ceil((SP * T) * args.argGamma))
+        start_interval = rnd.choice(intervals)
+        interval_fixed = set((start_interval + i) % len(intervals) for i in range(k_interval))
+
+        # Fix 'y' variables
+        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.y[j, t] == 1 and j not in meter_group_fixed and t not in interval_fixed])
+
+        for j, t in y_fixed:
+            y[j, t].LB = 1.0  # Set lower bound to 1
+
+        # Fix 'overline_y' variables
+        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.overline_y[j, t] == 1 and j not in meter_group_fixed and t not in interval_fixed])
+
+        for j, t in overline_y_fixed:
+            overline_y[j, t].LB = 1.0
+
+        # Fix 'z' variables
+        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.z[j, t] == 1 and j not in meter_group_fixed and t not in interval_fixed])
 
         for j, t in z_fixed:
             z[j, t].LB = 1.0
@@ -177,13 +212,12 @@ def largeNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, me
 
     # Update 'metrics'
     if fix_method == 1:
-        # Update cumulative runtime for 1st 'fix' method
         metrics.CumulativeRuntimeFirstMethod += tm.perf_counter() - t2
     elif fix_method == 2:
-        # Update cumulative runtime for 2nd 'fix' method
         metrics.CumulativeRuntimeSecondMethod += tm.perf_counter() - t2
     elif fix_method == 3:
-        # Update cumulative runtime for 3rd 'fix' method
         metrics.CumulativeRuntimeThirdMethod += tm.perf_counter() - t2
+    elif fix_method == 4:
+        metrics.CumulativeRuntimeFourthMethod += tm.perf_counter() - t2
 
     return solution

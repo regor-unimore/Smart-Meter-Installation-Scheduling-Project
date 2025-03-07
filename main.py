@@ -1,7 +1,7 @@
 # import
 from argumentParser import parseArguments
 from classes import Solution, Metrics
-from localSearch import largeNeighborhoodSearch
+from localSearch import MIPNeighborhoodSearch
 from model import createModel, modelStatus, solutionCallback
 from parameters import setupParameters, setupIndexes
 from semiGreedy import greedyRandomizedConstructiveHeuristics
@@ -50,13 +50,13 @@ elif args.argSolutionMethod == 'grasp':
     # Message for the user
     print('\n> Running the algorithm...\n')
 
-    # Define object 'best_solution' of class 'Solution'
-    best_solution = Solution()
+    # Define object 'bestSolution' of class 'Solution'
+    bestSolution = Solution()
 
     # Get 'start_tm'
     t1 = tm.perf_counter()
 
-    # Define object 'algo_metrics' of class 'Metrics'
+    # Define object 'metrics' of class 'Metrics'
     metrics = Metrics()
 
     # Main loop of the algorithm
@@ -67,50 +67,66 @@ elif args.argSolutionMethod == 'grasp':
         # Run the greedy randomized constructive heuristics to build an initial feasible solution
         solution = greedyRandomizedConstructiveHeuristics()
 
+        # Define object 'localSearchSolution' of class 'Solution' and initialize it
+        localSearchSolution = Solution()
+        localSearchSolution.updateFromSolution(solution)
+
         # Message for the user
         print('  NPV_curr: {:.2f}\n'.format(solution.NPV))
 
         # Message for the user
         print('> Improving the solution via local search...\n')
 
-        # Run the local search and update the current solution
-        solution.updateFromSolution(largeNeighborhoodSearch(solution, m, x, y, overline_y, z, S, R, X, D, metrics))
+        # Counter for the number of iterations without improvement in the local search
+        noImprovementIters = 0
 
-        # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
-        if modelStatus(m) in [2, 9]:
-            # Message for the user
-            print("  NPV_curr: {:.2f}\n".format(solution.NPV))
+        for _ in range(args.argMaxLocalSearchIter):
+            # Run the local search and update the current solution
+            solution.updateFromSolution(MIPNeighborhoodSearch(localSearchSolution, m, x, y, overline_y, z, S, R, X, D, metrics))
 
-            # Check whether a new incumbent solution has been found
-            if solution.NPV - best_solution.NPV > 0.001:
+            # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
+            if modelStatus(m) in [2, 9]:
                 # Message for the user
-                print('  New incumbent solution found!\n')
+                print("  NPV_curr: {:.2f}\n".format(solution.NPV))
 
-                # Update 'NumItersBest'
-                metrics.NumItersBest = metrics.NumIters
+                # Check whether a new local search solution has been found
+                if solution.NPV - localSearchSolution.NPV > 0.001:
+                    localSearchSolution.updateFromSolution(solution)
+                    noImprovementIters = 0  # Reset counter
+                else:
+                    noImprovementIters += 1 # Update counter
 
-                # Update 'RuntimeBest'
-                metrics.RuntimeBest = tm.perf_counter() - t1
+                # Check whether a new incumbent solution has been found
+                if solution.NPV - bestSolution.NPV > 0.001:
+                    # Message for the user
+                    print('  New incumbent solution found!\n')
 
-                # Update 'FixMethodBest'
-                metrics.FixMethodBest = metrics.FixMethod
+                    # Update 'metrics'
+                    metrics.NumItersBest = metrics.NumIters
+                    metrics.RuntimeBest = tm.perf_counter() - t1
+                    metrics.FixMethodBest = metrics.FixMethod
+                    metrics.NumImprovements += 1
 
-                # Update 'NumImprovements'
-                metrics.NumImprovements += 1
+                    if metrics.FixMethod == 1:
+                        metrics.NumImprovementsFirstMethod += 1
+                    elif metrics.FixMethod == 2:
+                        metrics.NumImprovementsSecondMethod += 1
+                    elif metrics.FixMethod == 3:
+                        metrics.NumImprovementsThirdMethod += 1
+                    elif metrics.FixMethod == 4:
+                        metrics.NumImprovementsFourthMethod += 1
 
-                # Update 'NumImprovementsFirstMethod', 'NumImprovementsSecondMethod', 'NumImprovementsThirdMethod'
-                if metrics.FixMethod == 1:
-                    metrics.NumImprovementsFirstMethod += 1
-                elif metrics.FixMethod == 2:
-                    metrics.NumImprovementsSecondMethod += 1
-                elif metrics.FixMethod == 3:
-                    metrics.NumImprovementsThirdMethod += 1
+                    # Update 'best_solution'
+                    bestSolution.updateFromSolution(solution)
 
-                # Update 'best_solution'
-                best_solution.updateFromSolution(solution)
+                    # Message for the user
+                    print('  NPV_incumbent: {:.2f}\n'.format(bestSolution.NPV))
 
-                # Message for the user
-                print('  NPV_incumbent: {:.2f}\n'.format(best_solution.NPV))
+                    # Breakout condition: 'break' if there is no improvement for 'args.argNoImprovementIter' iterations
+                    if noImprovementIters >= args.argNoImprovementIter:
+                        # Message for the user
+                        print('  No improvements for {} iterations! BREAKING...\n'.format(noImprovementIters))
+                        break
 
         # Increment 'NumIters'
         metrics.NumIters += 1
@@ -126,7 +142,7 @@ elif args.argSolutionMethod == 'grasp':
     print('> Process finished! Found {} improvement(s).\n'.format(metrics.NumImprovements))
 
     # Message for the user
-    print('  NPV_best: {:.2f}'.format(best_solution.NPV))
+    print('  NPV_best: {:.2f}'.format(bestSolution.NPV))
 
     # Write the best solution to file
-    writeOutputAlgorithmFile(args.argInstanceName, best_solution, metrics, periods, meter_groups, intervals, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed)
+    writeOutputAlgorithmFile(args.argInstanceName, bestSolution, metrics, periods, meter_groups, intervals, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed)

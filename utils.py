@@ -143,6 +143,9 @@ def writeOutputAlgorithmFile(*args):
         ofile.write('\nNumIterationsThirdMethod: {}'.format(args[2].NumItersThirdMethod))
         ofile.write('\nCumulativeRuntimeThirdMethod: {:.2f}'.format(args[2].CumulativeRuntimeThirdMethod))
         ofile.write('\nNumImprovementsThirdMethod: {}'.format(args[2].NumImprovementsThirdMethod))
+        ofile.write('\nNumIterationsFourthMethod: {}'.format(args[2].NumItersFourthMethod))
+        ofile.write('\nCumulativeRuntimeFourthMethod: {:.2f}'.format(args[2].CumulativeRuntimeFourthMethod))
+        ofile.write('\nNumImprovementsFourthMethod: {}'.format(args[2].NumImprovementsFourthMethod))
 
         ofile.write('\n\nCash flow statement:')
         ofile.write('\n+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+')
