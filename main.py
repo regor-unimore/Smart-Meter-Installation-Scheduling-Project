@@ -64,69 +64,47 @@ elif args.argSolutionMethod == 'grasp':
         # Message for the user
         print('> Iteration: {}\n'.format(metrics.NumIters))
 
-        # Run the greedy randomized constructive heuristics to build an initial feasible solution
-        solution = greedyRandomizedConstructiveHeuristics()
-
-        # Define object 'localSearchSolution' of class 'Solution' and initialize it
-        localSearchSolution = Solution()
-        localSearchSolution.updateFromSolution(solution)
+        # SOLUTION CONSTRUCTION: run the semi-greedy (or randomized-greedy) algorithm
+        currentSolution = greedyRandomizedConstructiveHeuristics()
 
         # Message for the user
-        print('  NPV_curr: {:.2f}\n'.format(solution.NPV))
+        print('  NPV_curr: {:.2f}\n'.format(currentSolution.NPV))
+
+        # LOCAL SEARCH: run the Variable Random MIP Neighborhood Descent
 
         # Message for the user
         print('> Improving the solution via local search...\n')
 
-        # Counter for the number of iterations without improvement in the local search
-        noImprovementIters = 0
+        # Define 'fix_method' iterator
+        fix_method = 1
 
-        for _ in range(args.argMaxLocalSearchIter):
-            # Run the local search and update the current solution
-            solution.updateFromSolution(MIPNeighborhoodSearch(localSearchSolution, m, x, y, overline_y, z, S, R, X, D, metrics))
+        while fix_method <= 4:
+            tempSolution = currentSolution.copy()
+            tempSolution.updateFromSolution(MIPNeighborhoodSearch(tempSolution, m, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
 
             # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
             if modelStatus(m) in [2, 9]:
                 # Message for the user
-                print("  NPV_curr: {:.2f}\n".format(solution.NPV))
+                print("  NPV_temp: {:.2f}\n".format(tempSolution.NPV))
 
-                # Check whether a new local search solution has been found
-                if solution.NPV - localSearchSolution.NPV > 0.001:
-                    localSearchSolution.updateFromSolution(solution)
-                    noImprovementIters = 0  # Reset counter
+                # Check whether a new current solution has been found
+                if tempSolution.NPV - currentSolution.NPV > 0.001:
+                    currentSolution.updateFromSolution(tempSolution)
+                    fix_method = 1 # Reset iterator
                 else:
-                    noImprovementIters += 1 # Update counter
+                    fix_method += 1 # Update iterator
 
-                # Check whether a new incumbent solution has been found
-                if solution.NPV - bestSolution.NPV > 0.001:
-                    # Message for the user
-                    print('  New incumbent solution found!\n')
+        # Check whether a new incumbent solution has been found
+        if currentSolution.NPV - bestSolution.NPV > 0.001:
+            # Message for the user
+            print('  New incumbent solution found!\n')
 
-                    # Update 'metrics'
-                    metrics.NumItersBest = metrics.NumIters
-                    metrics.RuntimeBest = tm.perf_counter() - t1
-                    metrics.FixMethodBest = metrics.FixMethod
-                    metrics.NumImprovements += 1
+            # Update 'metrics'
+            metrics.NumItersBest = metrics.NumIters
+            metrics.RuntimeBest = tm.perf_counter() - t1
 
-                    if metrics.FixMethod == 1:
-                        metrics.NumImprovementsFirstMethod += 1
-                    elif metrics.FixMethod == 2:
-                        metrics.NumImprovementsSecondMethod += 1
-                    elif metrics.FixMethod == 3:
-                        metrics.NumImprovementsThirdMethod += 1
-                    elif metrics.FixMethod == 4:
-                        metrics.NumImprovementsFourthMethod += 1
-
-                    # Update 'best_solution'
-                    bestSolution.updateFromSolution(solution)
-
-                    # Message for the user
-                    print('  NPV_incumbent: {:.2f}\n'.format(bestSolution.NPV))
-
-                    # Breakout condition: 'break' if there is no improvement for 'args.argNoImprovementIter' iterations
-                    if noImprovementIters >= args.argNoImprovementIter:
-                        # Message for the user
-                        print('  No improvements for {} iterations! BREAKING...\n'.format(noImprovementIters))
-                        break
+            # Update 'best_solution'
+            bestSolution.updateFromSolution(currentSolution)
 
         # Increment 'NumIters'
         metrics.NumIters += 1
@@ -145,4 +123,4 @@ elif args.argSolutionMethod == 'grasp':
     print('  NPV_best: {:.2f}'.format(bestSolution.NPV))
 
     # Write the best solution to file
-    writeOutputAlgorithmFile(args.argInstanceName, bestSolution, metrics, periods, meter_groups, intervals, args.argAlpha, args.argBeta, args.argGamma, args.argMaxIter, args.argSeed)
+    writeOutputAlgorithmFile(args.argInstanceName, bestSolution, metrics, periods, meter_groups, intervals, args.argAlpha, args.argBeta, args.argChi, args.argDelta, args.argEpsilon, args.argMaxIter, args.argSeed)

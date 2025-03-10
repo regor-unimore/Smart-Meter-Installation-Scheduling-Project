@@ -42,17 +42,17 @@ def parseArguments():
         # Parameter that guides the 1st 'fix' method within the local search
         parser.add_argument('--beta', action="store", type=float, required=False, help="Parameter that guides the 1st \'fix\' method within the local search", dest="argBeta")
 
-        # Parameter that guides the 2nd, 3rd, and 4th 'fix' methods within the local search
-        parser.add_argument('--gamma', action="store", type=float, required=False, help="Parameter that guides the 2nd, 3rd, and 4th \'fix\' method within the local search", dest="argGamma")
+        # Parameter that guides the 2nd 'fix' method within the local search
+        parser.add_argument('--chi', action="store", type=float, required=False, help="Parameter that guides the 2nd \'fix\' method within the local search", dest="argChi")
+
+        # Parameter that guides the 3rd 'fix' method within the local search
+        parser.add_argument('--delta', action="store", type=float, required=False, help="Parameter that guides the 3rd \'fix\' method within the local search", dest="argDelta")
+
+        # Parameter that guides the 4th 'fix' method within the local search
+        parser.add_argument('--epsilon', action="store", type=float, required=False, help="Parameter that guides the 4th \'fix\' method within the local search", dest="argEpsilon")
 
         # Maximum number of iterations in the main loop of the algorithm
         parser.add_argument('--maxIter', action="store", type=int, required=False, help="Maximum number of iterations in the main loop of the algorithm", dest="argMaxIter")
-
-        # Maximum number of iterations in the local search
-        parser.add_argument('--maxLocalSearchIter', action="store", type=int, required=False, help="Maximum number of iterations in the local search", dest="argMaxLocalSearchIter")
-
-        # Maximum number of iterations without improvement in the local search
-        parser.add_argument('--maxNoImprovementIter', action="store", type=int, required=False, help="Maximum number of iterations without improvement in the local search", dest="argNoImprovementIter")
 
         # Tolerance value for the solver
         parser.add_argument('--mipGap', action="store", type=float, required=True, help="Tolerance value for the solver", dest="argMipGap")

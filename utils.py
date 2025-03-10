@@ -117,35 +117,39 @@ def writeOutputAlgorithmFile(*args):
     # args[5] = intervals
     # args[6] = alpha
     # args[7] = beta
-    # args[8] = gamma
-    # args[9] = maxIter
-    # args[10] = seed
-    with open('output/results_grasp_' + args[0] + '_' + str(args[6]) + '_' + str(args[7]).replace('.', '_') + '_' + str(args[8]).replace('.', '_') + '_' + str(args[9]) + '_' + str(args[10]) + '.txt', 'w') as ofile:
+    # args[8] = chi
+    # args[9] = delta
+    # args[10] = epsilon
+    # args[11] = maxIter
+    # args[12] = seed
+    with open('output/results_grasp_' + args[0] + '_' + str(args[6]) + '_' + str(args[7]).replace('.', '_') + '_' + str(args[8]).replace('.', '_') + '_' + str(args[9]).replace('.', '_') + '_'+ str(args[10]).replace('.', '_') + '_' + str(args[11]) + '_' + str(args[12]) + '.txt', 'w') as ofile:
         ofile.write('Instance: {}'.format(args[0]))
         ofile.write('\nAlpha: {}'.format(args[6]))
         ofile.write('\nBeta: {:.2f}'.format(args[7]))
-        ofile.write('\nGamma: {:.2f}'.format(args[8]))
-        ofile.write('\nMaxIter: {}'.format(args[9]))
-        ofile.write('\nSeed: {}'.format(args[10]))
+        ofile.write('\nChi: {:.2f}'.format(args[8]))
+        ofile.write('\nDelta: {:.2f}'.format(args[9]))
+        ofile.write('\nEpsilon: {:.2f}'.format(args[10]))
+        ofile.write('\nMaxIter: {}'.format(args[11]))
+        ofile.write('\nSeed: {}'.format(args[12]))
         ofile.write('\nObjBest: {:.2f}'.format(args[1].NPV))
         ofile.write('\nRuntime: {:.2f}'.format(args[2].Runtime))
         ofile.write('\nNumIterations: {}'.format(args[2].NumIters))
-        ofile.write('\nNumImprovements: {}'.format(args[2].NumImprovements))
+        # ofile.write('\nNumImprovements: {}'.format(args[2].NumImprovements))
         ofile.write('\nNumIterations (to find the best solution): {}'.format(args[2].NumItersBest))
         ofile.write('\nRuntime (to find the best solution): {:.2f}'.format(args[2].RuntimeBest))
-        ofile.write('\nFixMethodBest: {}'.format(args[2].FixMethodBest))
+        # ofile.write('\nFixMethodBest: {}'.format(args[2].FixMethodBest))
         ofile.write('\nNumIterationsFirstMethod: {}'.format(args[2].NumItersFirstMethod))
         ofile.write('\nCumulativeRuntimeFirstMethod: {:.2f}'.format(args[2].CumulativeRuntimeFirstMethod))
-        ofile.write('\nNumImprovementsFirstMethod: {}'.format(args[2].NumImprovementsFirstMethod))
+        # ofile.write('\nNumImprovementsFirstMethod: {}'.format(args[2].NumImprovementsFirstMethod))
         ofile.write('\nNumIterationsSecondMethod: {}'.format(args[2].NumItersSecondMethod))
         ofile.write('\nCumulativeRuntimeSecondMethod: {:.2f}'.format(args[2].CumulativeRuntimeSecondMethod))
-        ofile.write('\nNumImprovementsSecondMethod: {}'.format(args[2].NumImprovementsSecondMethod))
+        # ofile.write('\nNumImprovementsSecondMethod: {}'.format(args[2].NumImprovementsSecondMethod))
         ofile.write('\nNumIterationsThirdMethod: {}'.format(args[2].NumItersThirdMethod))
         ofile.write('\nCumulativeRuntimeThirdMethod: {:.2f}'.format(args[2].CumulativeRuntimeThirdMethod))
-        ofile.write('\nNumImprovementsThirdMethod: {}'.format(args[2].NumImprovementsThirdMethod))
+        # ofile.write('\nNumImprovementsThirdMethod: {}'.format(args[2].NumImprovementsThirdMethod))
         ofile.write('\nNumIterationsFourthMethod: {}'.format(args[2].NumItersFourthMethod))
         ofile.write('\nCumulativeRuntimeFourthMethod: {:.2f}'.format(args[2].CumulativeRuntimeFourthMethod))
-        ofile.write('\nNumImprovementsFourthMethod: {}'.format(args[2].NumImprovementsFourthMethod))
+        # ofile.write('\nNumImprovementsFourthMethod: {}'.format(args[2].NumImprovementsFourthMethod))
 
         ofile.write('\n\nCash flow statement:')
         ofile.write('\n+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+')

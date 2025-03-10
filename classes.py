@@ -107,7 +107,7 @@ class Solution:
         self.NPV = -m.inf
 
     def updateFromSolution(self, other_solution):
-        """Updates the current solution with the values from another solution object."""
+        """ Updates the current solution with the values from another solution object. """
         if not isinstance(other_solution, Solution):
             raise TypeError("The provided object must be an instance of the Solution class.")
 
@@ -123,3 +123,9 @@ class Solution:
         self.F = other_solution.F.copy()
         self.d = other_solution.d.copy()
         self.NPV = other_solution.NPV
+
+    def copy(self):
+        """ Returns a deep copy of the current solution. """
+        new_solution = Solution()
+        new_solution.updateFromSolution(self)
+        return new_solution

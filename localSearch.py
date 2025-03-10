@@ -18,7 +18,7 @@ rnd.seed(args.argSeed)
 # ----------------------------------------------------------------------------------------------------------------------
 # Function(s) implementing the large neighborhood search heuristic used to improve the semi-greedy solution
 # ----------------------------------------------------------------------------------------------------------------------
-def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metrics):
+def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method):
     # Get 't2'
     t2 = tm.perf_counter()
 
@@ -29,9 +29,6 @@ def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metr
 
     # Reset 'model'
     model.reset()
-
-    # Randomly choose a 'fix' method
-    fix_method = rnd.choice([1, 2, 3, 4])
 
     # Update current 'fix' method
     metrics.FixMethod = fix_method
@@ -46,22 +43,31 @@ def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metr
 
         """ > 1st 'fix' method: fixes all variables for which a generated random value is greater than 'args.argBeta' """
         # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.y[j, t] == 1 and rnd.random() > args.argBeta])
+        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > args.argBeta])
 
         for j, t in y_fixed:
-            y[j, t].LB = 1.0  # Set lower bound to 1
+            if solution.y[j, t] == 1:
+                y[j, t].LB = 1.0  # Set lower bound to 1
+            else:
+                y[j, t].UB = 0.0  # Set upper bound to 0
 
         # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.overline_y[j, t] == 1 and rnd.random() > args.argBeta])
+        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > args.argBeta])
 
         for j, t in overline_y_fixed:
-            overline_y[j, t].LB = 1.0
+            if solution.overline_y[j, t] == 1:
+                overline_y[j, t].LB = 1.0
+            else:
+                overline_y[j, t].UB = 0.0
 
         # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.z[j, t] == 1 and rnd.random() > args.argBeta])
+        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > args.argBeta])
 
         for j, t in z_fixed:
-            z[j, t].LB = 1.0
+            if solution.z[j, t] == 1:
+                z[j, t].LB = 1.0
+            else:
+                z[j, t].UB = 0.0
 
     elif fix_method == 2:
         # Message to the user
@@ -72,26 +78,35 @@ def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metr
 
         """ > 2nd 'fix' method: randomly chooses a 'k'-size list of meter groups and fixes all variables for these meter groups """
         # Define 'k' and randomly choose a 'k'-size set of unique meter groups
-        k = int(m.ceil(J * args.argGamma))
+        k = int(m.ceil(J * args.argChi))
         meter_group_fixed = set(rnd.sample(meter_groups, k=k))
 
         # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.y[j, t] == 1 and j in meter_group_fixed])
+        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
 
         for j, t in y_fixed:
-            y[j, t].LB = 1.0  # Set lower bound to 1
+            if solution.y[j, t] == 1:
+                y[j, t].LB = 1.0  # Set lower bound to 1
+            else:
+                y[j, t].UB = 0.0  # Set upper bound to 0
 
         # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.overline_y[j, t] == 1 and j in meter_group_fixed])
+        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
 
         for j, t in overline_y_fixed:
-            overline_y[j, t].LB = 1.0
+            if solution.overline_y[j, t] == 1:
+                overline_y[j, t].LB = 1.0
+            else:
+                overline_y[j, t].UB = 0.0
 
         # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.z[j, t] == 1 and j in meter_group_fixed])
+        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
 
         for j, t in z_fixed:
-            z[j, t].LB = 1.0
+            if solution.z[j, t] == 1:
+                z[j, t].LB = 1.0
+            else:
+                z[j, t].UB = 0.0
 
     elif fix_method == 3:
         # Message to the user
@@ -102,27 +117,36 @@ def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metr
 
         """ > 3rd 'fix' method: randomly chooses a starting interval and fixes all variables for 'k' intervals from this (i.e., re-starting from the beginning if necessary) """
         # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
-        k = int(m.ceil((SP * T) * args.argGamma))
+        k = int(m.ceil((SP * T) * args.argDelta))
         start_interval = rnd.choice(intervals)
         interval_fixed = set((start_interval + i) % len(intervals) for i in range(k))
 
         # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.y[j, t] == 1 and t in interval_fixed])
+        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
 
         for j, t in y_fixed:
-            y[j, t].LB = 1.0  # Set lower bound to 1
+            if solution.y[j, t] == 1:
+                y[j, t].LB = 1.0  # Set lower bound to 1
+            else:
+                y[j, t].UB = 0.0  # Set upper bound to 0
 
         # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.overline_y[j, t] == 1 and t in interval_fixed])
+        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
 
         for j, t in overline_y_fixed:
-            overline_y[j, t].LB = 1.0
+            if solution.overline_y[j, t] == 1:
+                overline_y[j, t].LB = 1.0
+            else:
+                overline_y[j, t].UB = 0.0
 
         # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.z[j, t] == 1 and t in interval_fixed])
+        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
 
         for j, t in z_fixed:
-            z[j, t].LB = 1.0
+            if solution.z[j, t] == 1:
+                z[j, t].LB = 1.0
+            else:
+                z[j, t].UB = 0.0
 
     elif fix_method == 4:
         # Message to the user
@@ -133,31 +157,40 @@ def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metr
 
         """ > 4th 'fix' method: randomly chooses a 'k'-size list of meter groups, a starting interval, and fixes all variables outside the 'k' intervals from this for meter groups that are not in the list """
         # Define 'k' and randomly choose a 'k'-size set of unique meter groups
-        k_meter = int(m.ceil(J * args.argGamma))
+        k_meter = int(m.ceil(J * args.argEpsilon))
         meter_group_fixed = set(rnd.sample(meter_groups, k=k_meter))
 
         # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
-        k_interval = int(m.ceil((SP * T) * args.argGamma))
+        k_interval = int(m.ceil((SP * T) * args.argDelta))
         start_interval = rnd.choice(intervals)
         interval_fixed = set((start_interval + i) % len(intervals) for i in range(k_interval))
 
         # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.y[j, t] == 1 and j not in meter_group_fixed and t not in interval_fixed])
+        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
 
         for j, t in y_fixed:
-            y[j, t].LB = 1.0  # Set lower bound to 1
+            if solution.y[j, t] == 1:
+                y[j, t].LB = 1.0  # Set lower bound to 1
+            else:
+                y[j, t].UB = 0.0  # Set upper bound to 0
 
         # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.overline_y[j, t] == 1 and j not in meter_group_fixed and t not in interval_fixed])
+        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
 
         for j, t in overline_y_fixed:
-            overline_y[j, t].LB = 1.0
+            if solution.overline_y[j, t] == 1:
+                overline_y[j, t].LB = 1.0
+            else:
+                overline_y[j, t].UB = 0.0
 
         # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if solution.z[j, t] == 1 and j not in meter_group_fixed and t not in interval_fixed])
+        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
 
         for j, t in z_fixed:
-            z[j, t].LB = 1.0
+            if solution.z[j, t] == 1:
+                z[j, t].LB = 1.0
+            else:
+                z[j, t].UB = 0.0
 
     # Message for the user
     print('> Solving the model with fixed variables...\n')
@@ -202,13 +235,22 @@ def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metr
 
     # Unfix variables
     for j, t in y_fixed:
-        y[j, t].LB = 0.0
+        if solution.y[j, t] == 1:
+            y[j, t].LB = 0.0
+        else:
+            y[j, t].UB = 1.0
 
     for j, t in overline_y_fixed:
-        overline_y[j, t].LB = 0.0
+        if solution.overline_y[j, t] == 1:
+            overline_y[j, t].LB = 0.0
+        else:
+            overline_y[j, t].UB = 1.0
 
     for j, t in z_fixed:
-        z[j, t].LB = 0.0
+        if solution.z[j, t] == 1:
+            z[j, t].LB = 0.0
+        else:
+            z[j, t].UB = 1.0
 
     # Update 'metrics'
     if fix_method == 1:
