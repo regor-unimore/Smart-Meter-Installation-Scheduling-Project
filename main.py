@@ -76,7 +76,7 @@ elif args.argSolutionMethod == 'grasp':
         print('> Improving the solution via local search...\n')
 
         # Define 'fix_method' iterator
-        fix_method = 1
+        fix_method = 2
 
         while fix_method <= 4:
             tempSolution = currentSolution.copy()
@@ -90,7 +90,7 @@ elif args.argSolutionMethod == 'grasp':
                 # Check whether a new current solution has been found
                 if tempSolution.NPV - currentSolution.NPV > 0.001:
                     currentSolution.updateFromSolution(tempSolution)
-                    fix_method = 1 # Reset iterator
+                    fix_method = 2 # Reset iterator
                 else:
                     fix_method += 1 # Update iterator
 
