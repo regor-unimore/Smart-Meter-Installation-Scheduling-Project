@@ -59,6 +59,13 @@ elif args.argSolutionMethod == 'grasp':
     # Define object 'metrics' of class 'Metrics'
     metrics = Metrics()
 
+    # Clear the output file at the start
+    with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_'+ str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "w") as graspFile:
+        graspFile.write("Solution improvement(s):")
+        graspFile.write("\n+-------------------+-------------------+--------------------+")
+        graspFile.write("\n|         Iteration | NPV (semi-greedy) | NPV (local search) |")
+        graspFile.write("\n+-------------------+-------------------+--------------------+")
+
     # Main loop of the algorithm
     while metrics.NumIters < args.argMaxIter:
         # Message for the user
@@ -70,6 +77,9 @@ elif args.argSolutionMethod == 'grasp':
         # Message for the user
         print('  NPV_curr: {:.2f}\n'.format(currentSolution.NPV))
 
+        with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:
+            graspFile.write(f"\n| {metrics.NumIters:>17.0f} | {currentSolution.NPV:>17.2f} |")
+
         # LOCAL SEARCH: run the Variable Random MIP Neighborhood Descent
 
         # Message for the user
@@ -79,20 +89,23 @@ elif args.argSolutionMethod == 'grasp':
         fix_method = 2
 
         while fix_method <= 4:
-            tempSolution = currentSolution.copy()
-            tempSolution.updateFromSolution(MIPNeighborhoodSearch(tempSolution, m, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
+            newSolution = currentSolution.copy()
+            newSolution.updateFromSolution(MIPNeighborhoodSearch(newSolution, m, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
 
             # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
             if modelStatus(m) in [2, 9]:
                 # Message for the user
-                print("  NPV_temp: {:.2f}\n".format(tempSolution.NPV))
+                print("  NPV_new: {:.2f}\n".format(newSolution.NPV))
 
                 # Check whether a new current solution has been found
-                if tempSolution.NPV - currentSolution.NPV > 0.001:
-                    currentSolution.updateFromSolution(tempSolution)
+                if newSolution.NPV - currentSolution.NPV > 0.001:
+                    currentSolution.updateFromSolution(newSolution)
                     fix_method = 2 # Reset iterator
                 else:
                     fix_method += 1 # Update iterator
+
+        with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:
+            graspFile.write(f"  {currentSolution.NPV:>17.2f} |")
 
         # Check whether a new incumbent solution has been found
         if currentSolution.NPV - bestSolution.NPV > 0.001:
@@ -112,6 +125,9 @@ elif args.argSolutionMethod == 'grasp':
         # Check whether the time limit has been reached
         if tm.perf_counter() - t1 >= 3600.00:
             break
+
+    with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:
+        graspFile.write("\n+-------------------+-------------------+--------------------+")
 
     # Compute 'Runtime'
     metrics.Runtime = tm.perf_counter() - t1
