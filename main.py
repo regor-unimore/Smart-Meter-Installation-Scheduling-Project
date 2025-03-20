@@ -103,6 +103,8 @@ elif args.argSolutionMethod == 'grasp':
                     fix_method = 2 # Reset iterator
                 else:
                     fix_method += 1 # Update iterator
+            else:
+                fix_method += 1  # Update iterator
 
         with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:
             graspFile.write(f"  {currentSolution.NPV:>17.2f} |")
