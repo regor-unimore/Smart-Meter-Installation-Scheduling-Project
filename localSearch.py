@@ -16,7 +16,7 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 rnd.seed(args.argSeed)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Function(s) implementing the large neighborhood search heuristic used to improve the semi-greedy solution
+# Function(s) implementing the Random Variable MIP Neighborhood Descent used to improve the solution of the semi-greedy
 # ----------------------------------------------------------------------------------------------------------------------
 def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method):
     # Get 't2'

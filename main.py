@@ -97,6 +97,10 @@ elif args.argSolutionMethod == 'grasp':
                 # Message for the user
                 print("  NPV_new: {:.2f}\n".format(newSolution.NPV))
 
+                # Check whether the solution of the model has been tied
+                if abs(newSolution.NPV - args.argSolutionValue) < 0.01 and abs(metrics.RuntimeTieModel) < 1e-8:
+                    metrics.RuntimeTieModel = tm.perf_counter() - t1
+
                 # Check whether a new current solution has been found
                 if newSolution.NPV - currentSolution.NPV > 0.001:
                     currentSolution.updateFromSolution(newSolution)

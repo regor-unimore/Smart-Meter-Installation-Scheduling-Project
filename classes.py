@@ -71,6 +71,9 @@ class Metrics:
         # Number of improvements found by the 4th 'fix' method
         self.NumImprovementsFourthMethod = 0
 
+        # Runtime to tie the solution value of the model
+        self.RuntimeTieModel = 0.0
+
 class Solution:
     def __init__(self):
         # Integer variable 'x' corresponding to the number of smart meters installed in meter group 'j' during time interval 't'

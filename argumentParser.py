@@ -51,6 +51,9 @@ def parseArguments():
         # Parameter that guides the 4th 'fix' method within the local search
         parser.add_argument('--epsilon', action="store", type=float, required=False, help="Parameter that guides the 4th \'fix\' method within the local search", dest="argEpsilon")
 
+        # Solution obtained with the model
+        parser.add_argument('--solutionValue', action="store", type=float, required=False, help="Solution obtained with the model", dest="argSolutionValue")
+
         # Maximum number of iterations in the main loop of the algorithm
         parser.add_argument('--maxIter', action="store", type=int, required=False, help="Maximum number of iterations in the main loop of the algorithm", dest="argMaxIter")
 
