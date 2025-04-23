@@ -18,7 +18,7 @@ rnd.seed(args.argSeed)
 # ----------------------------------------------------------------------------------------------------------------------
 # Function(s) implementing the Random Variable MIP Neighborhood Descent used to improve the solution of the semi-greedy
 # ----------------------------------------------------------------------------------------------------------------------
-def MIPNeighborhoodSearch(solution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method):
+def VariableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method):
     # Get 't2'
     t2 = tm.perf_counter()
 

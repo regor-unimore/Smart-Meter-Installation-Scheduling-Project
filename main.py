@@ -1,7 +1,7 @@
 # import
 from argumentParser import parseArguments
 from classes import Solution, Metrics
-from localSearch import MIPNeighborhoodSearch
+from localSearch import VariableMIPNeighborhoodDescent
 from model import createModel, modelStatus, solutionCallback
 from parameters import setupParameters, setupIndexes
 from semiGreedy import greedyRandomizedConstructiveHeuristics
@@ -90,7 +90,7 @@ elif args.argSolutionMethod == 'grasp':
 
         while fix_method <= 4:
             newSolution = currentSolution.copy()
-            newSolution.updateFromSolution(MIPNeighborhoodSearch(newSolution, m, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
+            newSolution.updateFromSolution(VariableMIPNeighborhoodDescent(newSolution, m, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
 
             # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
             if modelStatus(m) in [2, 9]:
