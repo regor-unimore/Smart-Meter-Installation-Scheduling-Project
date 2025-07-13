@@ -97,7 +97,7 @@ elif args.argSolutionMethod == 'grasp':
                 # Message for the user
                 print("  NPV_new: {:.2f}\n".format(newSolution.NPV))
 
-                # COMPARISON WITH THE RUNTIME OF THE MODEL
+                # COMPARISON WITH THE RUNTIME OF THE MODEL  # TODO: uncomment when running the evaluation
                 # Check whether the solution of the model has been tied
                 # if abs(newSolution.NPV - args.argSolutionValue) < 0.01 and abs(metrics.RuntimeTieModel) < 1e-8:
                 #     metrics.RuntimeTieModel = tm.perf_counter() - t1

@@ -3,6 +3,7 @@ from argumentParser import parseArguments
 from parameters import setupParameters, setupIndexes
 import gurobipy as gp
 from gurobipy import GRB
+import math as m
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
@@ -72,7 +73,7 @@ def createModel():
     # AGGREGATE SUM: SIMPLE
     model.addConstrs((overline_y.sum(j, "*") == 1 for j in meter_groups), name="C2")
 
-    # Constraints (3) define the condition for which a meter group is considered smart
+    # Constraints (3) define the condition for which a meter group is considered smart (activation condition)
     model.addConstrs((z[j, t] <= gp.quicksum(overline_y[j, tau] for tau in range(t)) for j in meter_groups for t in intervals), name="C3")
 
     # Constraints (4) express the condition for completing the installations for each meter group 'j'
@@ -84,7 +85,7 @@ def createModel():
     # AGGREGATE SUM: SIMPLE
     model.addConstrs((x.sum("*", t) <= K * Q for t in intervals), name="C5")
 
-    # Constraints (6) impose that a single substitution squad 'k' can serve a maximum of 'sigma' meter groups during the same time interval 't'
+    # Constraints (6) impose that 'K * sigma' meter groups can be served for each time interval 't' (by all substitution squads)
     # AGGREGATE SUM: FULL
     # model.addConstrs((gp.quicksum(y[j, t] for j in meter_groups) <= K * sigma for t in intervals), name="C6")
     # AGGREGATE SUM: SIMPLE
@@ -98,6 +99,9 @@ def createModel():
     # model.addConstrs((y[j, t] <= b[j][t] * (1 - gp.quicksum(overline_y[j, tau] for tau in range(t))) for j in meter_groups for t in intervals), name="C8")
     # AGGREGATE SUM: SIMPLE
     model.addConstrs((y[j, t] <= b[j][t] * (1 - gp.quicksum(overline_y[j, tau] for tau in range(t))) for j in meter_groups for t in intervals), name="C8")
+
+    # Constraints (8): original form (reinforced by valid inequality (1))
+    # model.addConstrs((y[j, t] <= b[j][t] for j in meter_groups for t in intervals), name="C8")
 
     # Constraints (9)
     model.addConstrs((S[p] == gp.quicksum(S1[j][t] * z[j, t] for j in meter_groups for t in range(T * p, T * (p + 1))) for p in range(SP)), name="C9")
@@ -128,6 +132,12 @@ def createModel():
 
     # Constraints (18)
     model.addConstrs((R[p] == D[p - 2] + r * gp.quicksum((X[varphi] - D[varphi]) for varphi in range((p - 2) + 1)) for p in range(3, P + 1)), name="C18")
+
+    # Valid inequality (1)
+    # model.addConstrs((y[j, t] <= (1 - gp.quicksum(overline_y[j, tau] for tau in range(t))) for j in meter_groups for t in intervals), name="VI1")
+
+    # Valid inequality (2)
+    # model.addConstrs((y.sum(j, "*") >= m.ceil(N[j] / Q) for j in meter_groups), name="VI2")
 
     return model, x, y, overline_y, z, S, R, X, D
 
