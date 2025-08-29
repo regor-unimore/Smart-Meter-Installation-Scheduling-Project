@@ -2,7 +2,7 @@
 from argumentParser import parseArguments
 from classes import Solution, Metrics
 from localSearch import VariableMIPNeighborhoodDescent
-from model import createModel, modelStatus, solutionCallback
+from model import SolutionCallback, createModel, modelStatus
 from parameters import setupParameters, setupIndexes
 from semiGreedy import greedyRandomizedConstructiveHeuristics
 from utils import writeOutputModelFile, writeOutputAlgorithmFile
@@ -18,7 +18,7 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Create the model
-m, x, y, overline_y, z, S, R, X, D = createModel()
+model, x, y, overline_y, z, S, R, X, D = createModel()
 
 # Select the app based on 'argApp'
 
@@ -28,21 +28,17 @@ if args.argSolutionMethod == 'branch-and-cut':
     # Message for the user
     print('> Solving the model...\n')
 
-    # Clear the output file at the start
-    with open('callbacks/results_bc_' + instanceName + '.txt', "w") as cbFile:
-        cbFile.write("MIP solution callback(s):")
-        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
-        cbFile.write("\n|   Solution Node |       Incumbent |            Time |  Solution Count |")
-        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
+    # Create the solution callback
+    solutionCallback = SolutionCallback(instanceName)
 
     # Solve the model
-    m.optimize(lambda model, where: solutionCallback(model, where, instanceName))
-
-    with open('callbacks/results_bc_' + instanceName + '.txt', "a") as cbFile:
-        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
+    try:
+        model.optimize(solutionCallback)
+    finally:
+        solutionCallback.close() # Ensure the file is properly closed
 
     # Write the model solution to file
-    writeOutputModelFile(args.argInstanceName, m)
+    writeOutputModelFile(args.argInstanceName, model)
 
 # Run the algorithm
 elif args.argSolutionMethod == 'grasp':
@@ -80,7 +76,7 @@ elif args.argSolutionMethod == 'grasp':
         with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:
             graspFile.write(f"\n| {metrics.NumIters:>17.0f} | {currentSolution.NPV:>17.2f} |")
 
-        # LOCAL SEARCH: run the Variable Random MIP Neighborhood Descent
+        # LOCAL SEARCH: run the Variable MIP Neighborhood Descent
 
         # Message for the user
         print('> Improving the solution via local search...\n')
@@ -90,15 +86,15 @@ elif args.argSolutionMethod == 'grasp':
 
         while fix_method <= 4:
             newSolution = currentSolution.copy()
-            newSolution.updateFromSolution(VariableMIPNeighborhoodDescent(newSolution, m, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
+            newSolution.updateFromSolution(VariableMIPNeighborhoodDescent(newSolution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
 
             # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
-            if modelStatus(m) in [2, 9]:
+            if modelStatus(model) in [2, 9]:
                 # Message for the user
                 print("  NPV_new: {:.2f}\n".format(newSolution.NPV))
 
-                # Check whether the solution of the model has been tied
-                if args.argSolutionValue is not None and abs(newSolution.NPV - args.argSolutionValue) < 0.01 and abs(metrics.RuntimeTieModel) < 1e-8:
+                # Check whether the solution of the model has been tied (or improved)
+                if metrics.RuntimeTieModel is None and args.argSolutionValue is not None and newSolution.NPV - args.argSolutionValue > 0.001:
                     metrics.RuntimeTieModel = tm.perf_counter() - t1
 
                 # Check whether a new current solution has been found
@@ -129,7 +125,7 @@ elif args.argSolutionMethod == 'grasp':
         metrics.NumIters += 1
 
         # Check whether the time limit has been reached
-        if tm.perf_counter() - t1 >= 3600.00:
+        if tm.perf_counter() - t1 >= 3600.0:
             break
 
     with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:

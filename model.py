@@ -3,12 +3,55 @@ from argumentParser import parseArguments
 from parameters import setupParameters, setupIndexes
 import gurobipy as gp
 from gurobipy import GRB
-import math as m
+import os
+import time as tm
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
 J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstanceName)
 P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Class(es) for the MILP model
+# ----------------------------------------------------------------------------------------------------------------------
+class SolutionCallback:
+    def __init__(self, filename):
+        self.filename = filename
+        self.filepath = f'callbacks/results_bc_{filename}.txt'
+
+        # Ensure directory exists
+        os.makedirs('callbacks', exist_ok=True)
+
+        # Initialize file with headers
+        with open(self.filepath, 'w') as f:
+            f.write("MIP solution callback(s):")
+            f.write("\n+-----------------+-----------------+-----------------+-----------------+")
+            f.write("\n|   Solution Node |       Incumbent |            Time |  Solution Count |")
+            f.write("\n+-----------------+-----------------+-----------------+-----------------+")
+
+        # Keep file handle open for better performance
+        self.filehandle = open(self.filepath, 'a')
+
+    def __call__(self, model, where):
+        if where == GRB.Callback.MIPSOL:
+            try:
+                # MIP solution callback
+                nodeCount = model.cbGet(GRB.Callback.MIPSOL_NODCNT)
+                incumbent = model.cbGet(GRB.Callback.MIPSOL_OBJ)
+                runtime = model.cbGet(GRB.Callback.RUNTIME)
+                solutionCount = model.cbGet(GRB.Callback.MIPSOL_SOLCNT)
+
+                self.filehandle.write(f"\n| {nodeCount:>15.0f} | {incumbent:>15.2f} | {runtime:>15.2f} | {solutionCount:>15.0f} |")
+
+            except Exception as e:
+                print(f"> Error in callback: {e}\n")
+
+    def close(self):
+        """ Call this after optimization to properly close the file """
+        self.filehandle.write("\n+-----------------+-----------------+-----------------+-----------------+")
+
+        if hasattr(self, 'filehandle') and self.filehandle.closed:
+            self.filehandle.close()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Function(s) for the MILP model
@@ -176,14 +219,3 @@ def modelStatus(model):
         return 16
     elif model.Status == GRB.MEM_LIMIT:
         return 17
-
-def solutionCallback(model, where, cbFilename):
-    if where == GRB.Callback.MIPSOL:
-        # MIP solution callback
-        nodeCount = model.cbGet(GRB.Callback.MIPSOL_NODCNT)
-        incumbent = model.cbGet(GRB.Callback.MIPSOL_OBJ)
-        runtime = model.cbGet(GRB.Callback.RUNTIME)
-        solutionCount = model.cbGet(GRB.Callback.MIPSOL_SOLCNT)
-
-        with open('callbacks/results_bc_' + cbFilename + '.txt', 'a') as cbFile:
-            cbFile.write(f"\n| {nodeCount:>15.0f} | {incumbent:>15.2f} | {runtime:>15.2f} | {solutionCount:>15.0f} |")

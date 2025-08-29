@@ -72,7 +72,7 @@ class Metrics:
         self.NumImprovementsFourthMethod = 0
 
         # Runtime to tie the solution value of the model
-        self.RuntimeTieModel = 0.0
+        self.RuntimeTieModel = None
 
 class Solution:
     def __init__(self):
