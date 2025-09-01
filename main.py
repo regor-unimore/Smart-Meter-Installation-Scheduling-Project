@@ -1,7 +1,7 @@
 # import
 from argumentParser import parseArguments
 from classes import Solution, Metrics
-from localSearch import VariableMIPNeighborhoodDescent
+from localSearch import variableMIPNeighborhoodDescent
 from model import SolutionCallback, createModel, modelStatus
 from parameters import setupParameters, setupIndexes
 from semiGreedy import greedyRandomizedConstructiveHeuristics
@@ -82,11 +82,11 @@ elif args.argSolutionMethod == 'grasp':
         print('> Improving the solution via local search...\n')
 
         # Define 'fix_method' iterator
-        fix_method = 2
+        fix_method = 1
 
-        while fix_method <= 4:
+        while fix_method <= 3:
             newSolution = currentSolution.copy()
-            newSolution.updateFromSolution(VariableMIPNeighborhoodDescent(newSolution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
+            newSolution.updateFromSolution(variableMIPNeighborhoodDescent(newSolution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
 
             # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
             if modelStatus(model) in [2, 9]:
@@ -100,7 +100,7 @@ elif args.argSolutionMethod == 'grasp':
                 # Check whether a new current solution has been found
                 if newSolution.NPV - currentSolution.NPV > 0.001:
                     currentSolution.updateFromSolution(newSolution)
-                    fix_method = 2 # Reset iterator
+                    fix_method = 1 # Reset iterator
                 else:
                     fix_method += 1 # Update iterator
             else:

@@ -18,179 +18,81 @@ rnd.seed(args.argSeed)
 # ----------------------------------------------------------------------------------------------------------------------
 # Function(s) implementing the Variable MIP Neighborhood Descent used to improve the solution of the semi-greedy
 # ----------------------------------------------------------------------------------------------------------------------
-def VariableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method):
+def variableFixing(var_dict, sol_dict, fixed_set):
+    """ Fix variables in 'var_dict' based on current """
+    for j, t in fixed_set:
+        if sol_dict[j, t] == 1:
+            var_dict[j, t].LB = 1.0 # Set lower bound to 1
+        else:
+            var_dict[j, t].UB = 0.0 # Set upper bound to 0
+
+def variableUnfixing(var_dict, sol_dict, fixed_set):
+    """ Restore original bounds for previously fixed variables """
+    for j, t in fixed_set:
+        if sol_dict[j, t] == 1:
+            var_dict[j, t].LB = 0.0
+        else:
+            var_dict[j, t].UB = 1.0
+
+def meterGroupNeighborhood(chi):
+    """ Randomly chooses a 'k'-size set of meter groups and fixes all variables for these meter groups """
+    # Define 'k' and randomly choose a 'k'-size set of unique meter groups
+    k = int(m.ceil(len(meter_groups) * chi))
+    meter_group_fixed = set(rnd.sample(meter_groups, k=k))
+
+    return np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
+
+def intervalNeighborhood(delta):
+    """ Randomly chooses a starting interval and fixes all variables for 'k' consecutive intervals (i.e., re-starting from the beginning if necessary) """
+    # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
+    k = int(m.ceil(len(intervals) * delta))
+    start_interval = rnd.choice(intervals)
+    interval_fixed = set((start_interval + i) % len(intervals) for i in range(k))
+
+    return np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
+
+def combinedNeighborhood(epsilon, delta):
+    """ Randomly chooses a 'k'-size list of meter groups, a starting interval, and fixes all variables outside the 'k' consecutive intervals for meter groups that are not in the list """
+    # Define 'k_meter' and randomly choose a 'k'-size set of unique meter groups
+    k_meter = int(m.ceil(len(meter_groups) * epsilon))
+    meter_group_fixed = set(rnd.sample(meter_groups, k=k_meter))
+
+    # Define 'k_interval', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
+    k_interval = int(m.ceil(len(intervals) * delta))
+    start_interval = rnd.choice(intervals)
+    interval_fixed = set((start_interval + i) % len(intervals) for i in range(k_interval))
+
+    return np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
+
+def sparseNeighborhood(beta):
+    """ Fixes all variables for which a generated random value is greater than 'beta' """
+    return np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > beta])
+
+# Map 'fix_method' to the corresponding strategy
+FIX_METHOD = {
+    1: lambda: meterGroupNeighborhood(args.argChi),
+    2: lambda: intervalNeighborhood(args.argDelta),
+    3: lambda: combinedNeighborhood(args.argEpsilon, args.argDelta),
+    4: lambda: sparseNeighborhood(args.argBeta)
+}
+
+def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method):
     # Get 't2'
     t2 = tm.perf_counter()
-
-    # Define empty lists 'y_fixed', 'overline_y_fixed', 'z_fixed'
-    y_fixed = []
-    overline_y_fixed = []
-    z_fixed = []
 
     # Reset 'model'
     model.reset()
 
-    # Update current 'fix' method
+    # Update current 'fix_method'
     metrics.FixMethod = fix_method
 
-    # Call the 'fix' method based on 'fix_method'
-    if fix_method == 1:
-        # Message to the user
-        print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
+    # Message to the user
+    print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
 
-        # Update number of iterations for 1st 'fix' method
-        metrics.NumItersFirstMethod += 1
-
-        """ > 1st 'fix' method: fixes all variables for which a generated random value is greater than 'args.argBeta' """
-        # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > args.argBeta])
-
-        for j, t in y_fixed:
-            if solution.y[j, t] == 1:
-                y[j, t].LB = 1.0  # Set lower bound to 1
-            else:
-                y[j, t].UB = 0.0  # Set upper bound to 0
-
-        # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > args.argBeta])
-
-        for j, t in overline_y_fixed:
-            if solution.overline_y[j, t] == 1:
-                overline_y[j, t].LB = 1.0
-            else:
-                overline_y[j, t].UB = 0.0
-
-        # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > args.argBeta])
-
-        for j, t in z_fixed:
-            if solution.z[j, t] == 1:
-                z[j, t].LB = 1.0
-            else:
-                z[j, t].UB = 0.0
-
-    elif fix_method == 2:
-        # Message to the user
-        print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
-
-        # Update number of iterations for 2nd 'fix' method
-        metrics.NumItersSecondMethod += 1
-
-        """ > 2nd 'fix' method: randomly chooses a 'k'-size list of meter groups and fixes all variables for these meter groups """
-        # Define 'k' and randomly choose a 'k'-size set of unique meter groups
-        k = int(m.ceil(J * args.argChi))
-        meter_group_fixed = set(rnd.sample(meter_groups, k=k))
-
-        # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
-
-        for j, t in y_fixed:
-            if solution.y[j, t] == 1:
-                y[j, t].LB = 1.0  # Set lower bound to 1
-            else:
-                y[j, t].UB = 0.0  # Set upper bound to 0
-
-        # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
-
-        for j, t in overline_y_fixed:
-            if solution.overline_y[j, t] == 1:
-                overline_y[j, t].LB = 1.0
-            else:
-                overline_y[j, t].UB = 0.0
-
-        # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
-
-        for j, t in z_fixed:
-            if solution.z[j, t] == 1:
-                z[j, t].LB = 1.0
-            else:
-                z[j, t].UB = 0.0
-
-    elif fix_method == 3:
-        # Message to the user
-        print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
-
-        # Update number of iterations for 3rd 'fix' method
-        metrics.NumItersThirdMethod += 1
-
-        """ > 3rd 'fix' method: randomly chooses a starting interval and fixes all variables for 'k' intervals from this (i.e., re-starting from the beginning if necessary) """
-        # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
-        k = int(m.ceil((SP * T) * args.argDelta))
-        start_interval = rnd.choice(intervals)
-        interval_fixed = set((start_interval + i) % len(intervals) for i in range(k))
-
-        # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
-
-        for j, t in y_fixed:
-            if solution.y[j, t] == 1:
-                y[j, t].LB = 1.0  # Set lower bound to 1
-            else:
-                y[j, t].UB = 0.0  # Set upper bound to 0
-
-        # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
-
-        for j, t in overline_y_fixed:
-            if solution.overline_y[j, t] == 1:
-                overline_y[j, t].LB = 1.0
-            else:
-                overline_y[j, t].UB = 0.0
-
-        # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
-
-        for j, t in z_fixed:
-            if solution.z[j, t] == 1:
-                z[j, t].LB = 1.0
-            else:
-                z[j, t].UB = 0.0
-
-    elif fix_method == 4:
-        # Message to the user
-        print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
-
-        # Update number of iterations for 4th 'fix' method
-        metrics.NumItersFourthMethod += 1
-
-        """ > 4th 'fix' method: randomly chooses a 'k'-size list of meter groups, a starting interval, and fixes all variables outside the 'k' intervals from this for meter groups that are not in the list """
-        # Define 'k' and randomly choose a 'k'-size set of unique meter groups
-        k_meter = int(m.ceil(J * args.argEpsilon))
-        meter_group_fixed = set(rnd.sample(meter_groups, k=k_meter))
-
-        # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
-        k_interval = int(m.ceil((SP * T) * args.argDelta))
-        start_interval = rnd.choice(intervals)
-        interval_fixed = set((start_interval + i) % len(intervals) for i in range(k_interval))
-
-        # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
-
-        for j, t in y_fixed:
-            if solution.y[j, t] == 1:
-                y[j, t].LB = 1.0  # Set lower bound to 1
-            else:
-                y[j, t].UB = 0.0  # Set upper bound to 0
-
-        # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
-
-        for j, t in overline_y_fixed:
-            if solution.overline_y[j, t] == 1:
-                overline_y[j, t].LB = 1.0
-            else:
-                overline_y[j, t].UB = 0.0
-
-        # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
-
-        for j, t in z_fixed:
-            if solution.z[j, t] == 1:
-                z[j, t].LB = 1.0
-            else:
-                z[j, t].UB = 0.0
+    # Select the neighborhood based on 'fix_method'
+    fixed_set = FIX_METHOD[fix_method]()
+    for var, sol in [(y, solution.y), (overline_y, solution.overline_y), (z, solution.z)]:
+        variableFixing(var, sol, fixed_set)
 
     # Message for the user
     print('> Solving the model with fixed variables...\n')
@@ -228,38 +130,29 @@ def VariableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
                     solution.overline_y[j, t] = overline_y[j, t].X
                     solution.z[j, t] = z[j, t].X
                 except AttributeError:
-                    print(f"Error: Unable to retrieve attribute 'X' for meter group {j}, interval {t}. Skipping...\n")
+                    print(
+                        f"Error: Unable to retrieve attribute 'X' for meter group {j}, interval {t}. Skipping...\n")
                     continue
     else:
-        print("> WARNING: Model did not return a feasible or optimal solution. Skipping update...\n")
+        print(f"> WARNING: Model status: {modelStatus(model)}. Skipping update...\n")
 
     # Unfix variables
-    for j, t in y_fixed:
-        if solution.y[j, t] == 1:
-            y[j, t].LB = 0.0
-        else:
-            y[j, t].UB = 1.0
-
-    for j, t in overline_y_fixed:
-        if solution.overline_y[j, t] == 1:
-            overline_y[j, t].LB = 0.0
-        else:
-            overline_y[j, t].UB = 1.0
-
-    for j, t in z_fixed:
-        if solution.z[j, t] == 1:
-            z[j, t].LB = 0.0
-        else:
-            z[j, t].UB = 1.0
+    for var, sol in [(y, solution.y), (overline_y, solution.overline_y), (z, solution.z)]:
+        variableUnfixing(var, sol, fixed_set)
 
     # Update 'metrics'
+    tm_elapsed = tm.perf_counter() - t2
     if fix_method == 1:
-        metrics.CumulativeRuntimeFirstMethod += tm.perf_counter() - t2
+        metrics.NumItersFirstMethod += 1
+        metrics.CumulativeRuntimeFirstMethod += tm_elapsed
     elif fix_method == 2:
-        metrics.CumulativeRuntimeSecondMethod += tm.perf_counter() - t2
+        metrics.NumItersSecondMethod += 1
+        metrics.CumulativeRuntimeSecondMethod += tm_elapsed
     elif fix_method == 3:
-        metrics.CumulativeRuntimeThirdMethod += tm.perf_counter() - t2
+        metrics.NumItersThirdMethod += 1
+        metrics.CumulativeRuntimeThirdMethod += tm_elapsed
     elif fix_method == 4:
-        metrics.CumulativeRuntimeFourthMethod += tm.perf_counter() - t2
+        metrics.NumItersFourthMethod += 1
+        metrics.CumulativeRuntimeFourthMethod += tm_elapsed
 
     return solution
