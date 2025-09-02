@@ -30,8 +30,8 @@ def parseArguments():
         # Name of the instance
         parser.add_argument('--instanceName', action="store", type=str, required=True, help="Name of the instance", dest="argInstanceName")
 
-        # App (i.e., 'model' or 'algorithm')
-        parser.add_argument('--solutionMethod', action="store", type=str, required=True, help="App (i.e., 'model' or 'algorithm')", dest="argSolutionMethod")
+        # App (i.e., 'branch-and-cut' or 'grasp')
+        parser.add_argument('--solutionMethod', action="store", type=str, required=True, help="App (i.e., 'branch-and-cut' or 'grasp')", dest="argSolutionMethod")
 
         # Sorting rule used within the greedy randomized constructive heuristics
         parser.add_argument('--sortingRule', action="store", type=str, required=False, help="Sorting rule used within the greedy randomized constructive heuristics (i.e., \'LongestRemainingProcessingTime\', or \'ShortestRemainingProcessingTime\'", dest="argSortingRule")
@@ -39,23 +39,23 @@ def parseArguments():
         # Cardinality of the restricted candidate list in the greedy randomized constructive heuristics
         parser.add_argument('--alpha', action="store", type=int, required=False, help="Cardinality of the restricted candidate list in the greedy randomized constructive heuristics", dest="argAlpha")
 
-        # Parameter that guides the 1st 'fix' method within the local search
-        parser.add_argument('--beta', action="store", type=float, required=False, help="Parameter that guides the 1st \'fix\' method within the local search", dest="argBeta")
+        # Parameter that guides the 4th 'neighborhood' within the local search
+        parser.add_argument('--beta', action="store", type=float, required=False, help="Parameter that guides the 4th \'neighborhood\' within the local search", dest="argBeta")
 
-        # Parameter that guides the 2nd 'fix' method within the local search
-        parser.add_argument('--chi', action="store", type=float, required=False, help="Parameter that guides the 2nd \'fix\' method within the local search", dest="argChi")
+        # Parameter that guides the 1st 'neighborhood' within the local search
+        parser.add_argument('--chi', action="store", type=float, required=False, help="Parameter that guides the 1st \'neighborhood\' within the local search", dest="argChi")
 
-        # Parameter that guides the 3rd 'fix' method within the local search
-        parser.add_argument('--delta', action="store", type=float, required=False, help="Parameter that guides the 3rd \'fix\' method within the local search", dest="argDelta")
+        # Parameter that guides the 2nd 'neighborhood' within the local search
+        parser.add_argument('--delta', action="store", type=float, required=False, help="Parameter that guides the 2nd \'neighborhood\' within the local search", dest="argDelta")
 
-        # Parameter that guides the 4th 'fix' method within the local search
-        parser.add_argument('--epsilon', action="store", type=float, required=False, help="Parameter that guides the 4th \'fix\' method within the local search", dest="argEpsilon")
+        # Parameter that guides the 3rd 'neighborhood' within the local search
+        parser.add_argument('--epsilon', action="store", type=float, required=False, help="Parameter that guides the 3rd \'neighborhood\' within the local search", dest="argEpsilon")
 
         # Solution obtained with the model
-        parser.add_argument('--solutionValue', action="store", type=float, required=False, help="Solution obtained with the model", dest="argSolutionValue")
+        parser.add_argument('--solutionValue', action="store", type=float, required=False, help="Solution obtained using the \'branch-and-cut\' solution method", dest="argSolutionValue")
 
         # Maximum number of iterations in the main loop of the algorithm
-        parser.add_argument('--maxIter', action="store", type=int, required=False, help="Maximum number of iterations in the main loop of the algorithm", dest="argMaxIter")
+        parser.add_argument('--maxIter', action="store", type=int, required=False, help="Maximum number of iterations in the main loop of the \'grasp\'", dest="argMaxIter")
 
         # Tolerance value for the solver
         parser.add_argument('--mipGap', action="store", type=float, required=True, help="Tolerance value for the solver", dest="argMipGap")

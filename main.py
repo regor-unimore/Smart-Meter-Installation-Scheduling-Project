@@ -81,12 +81,12 @@ elif args.argSolutionMethod == 'grasp':
         # Message for the user
         print('> Improving the solution via local search...\n')
 
-        # Define 'fix_method' iterator
-        fix_method = 1
+        # Define 'neighborhood' iterator
+        neighborhood = 1
 
-        while fix_method <= 3:
+        while neighborhood <= 3:
             newSolution = currentSolution.copy()
-            newSolution.updateFromSolution(variableMIPNeighborhoodDescent(newSolution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method))
+            newSolution.updateFromSolution(variableMIPNeighborhoodDescent(newSolution, model, x, y, overline_y, z, S, R, X, D, metrics, neighborhood))
 
             # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
             if modelStatus(model) in [2, 9]:
@@ -94,17 +94,17 @@ elif args.argSolutionMethod == 'grasp':
                 print("  NPV_new: {:.2f}\n".format(newSolution.NPV))
 
                 # Check whether the solution of the model has been tied (or improved)
-                if metrics.RuntimeTieModel is None and args.argSolutionValue is not None and newSolution.NPV - args.argSolutionValue > 0.001:
+                if metrics.RuntimeTieModel is None and args.argSolutionValue is not None and newSolution.NPV - args.argSolutionValue > 0.001: # TODO: try decreasing the tolerance value (i.e., 0.000001) and check whether the variable takes value for small differences
                     metrics.RuntimeTieModel = tm.perf_counter() - t1
 
                 # Check whether a new current solution has been found
                 if newSolution.NPV - currentSolution.NPV > 0.001:
                     currentSolution.updateFromSolution(newSolution)
-                    fix_method = 1 # Reset iterator
+                    neighborhood = 1 # Reset iterator
                 else:
-                    fix_method += 1 # Update iterator
+                    neighborhood += 1 # Update iterator
             else:
-                fix_method += 1  # Update iterator
+                neighborhood += 1  # Update iterator
 
         with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:
             graspFile.write(f"  {currentSolution.NPV:>17.2f} |")
@@ -135,7 +135,7 @@ elif args.argSolutionMethod == 'grasp':
     metrics.Runtime = tm.perf_counter() - t1
 
     # Message for the user
-    print('> Process finished! Found {} improvement(s).\n'.format(metrics.NumImprovements))
+    print('> Process finished!\n')
 
     # Message for the user
     print('  NPV_best: {:.2f}'.format(bestSolution.NPV))

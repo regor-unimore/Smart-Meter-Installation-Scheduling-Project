@@ -68,29 +68,29 @@ def sparseNeighborhood(beta):
     """ Fixes all variables for which a generated random value is greater than 'beta' """
     return np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > beta])
 
-# Map 'fix_method' to the corresponding strategy
-FIX_METHOD = {
+# Map 'NEIGHBORHOOD' to the corresponding strategy
+NEIGHBORHOOD = {
     1: lambda: meterGroupNeighborhood(args.argChi),
     2: lambda: intervalNeighborhood(args.argDelta),
     3: lambda: combinedNeighborhood(args.argEpsilon, args.argDelta),
     4: lambda: sparseNeighborhood(args.argBeta)
 }
 
-def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X, D, metrics, fix_method):
+def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X, D, metrics, neighborhood):
     # Get 't2'
     t2 = tm.perf_counter()
 
     # Reset 'model'
     model.reset()
 
-    # Update current 'fix_method'
-    metrics.FixMethod = fix_method
+    # Update current 'neighborhood'
+    metrics.Neighborhood = neighborhood
 
     # Message to the user
-    print("\n> Using \'fix\' method no. {}...\n".format(fix_method))
+    print("\n> Using \'fix\' method no. {}...\n".format(neighborhood))
 
-    # Select the neighborhood based on 'fix_method'
-    fixed_set = FIX_METHOD[fix_method]()
+    # Select the neighborhood based on 'neighborhood'
+    fixed_set = NEIGHBORHOOD[neighborhood]()
     for var, sol in [(y, solution.y), (overline_y, solution.overline_y), (z, solution.z)]:
         variableFixing(var, sol, fixed_set)
 
@@ -142,17 +142,17 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
 
     # Update 'metrics'
     tm_elapsed = tm.perf_counter() - t2
-    if fix_method == 1:
-        metrics.NumItersFirstMethod += 1
-        metrics.CumulativeRuntimeFirstMethod += tm_elapsed
-    elif fix_method == 2:
-        metrics.NumItersSecondMethod += 1
-        metrics.CumulativeRuntimeSecondMethod += tm_elapsed
-    elif fix_method == 3:
-        metrics.NumItersThirdMethod += 1
-        metrics.CumulativeRuntimeThirdMethod += tm_elapsed
-    elif fix_method == 4:
-        metrics.NumItersFourthMethod += 1
-        metrics.CumulativeRuntimeFourthMethod += tm_elapsed
+    if neighborhood == 1:
+        metrics.NumItersFirstNeighborhood += 1
+        metrics.CumulativeRuntimeFirstNeighborhood += tm_elapsed
+    elif neighborhood == 2:
+        metrics.NumItersSecondNeighborhood += 1
+        metrics.CumulativeRuntimeSecondNeighborhood += tm_elapsed
+    elif neighborhood == 3:
+        metrics.NumItersThirdNeighborhood += 1
+        metrics.CumulativeRuntimeThirdNeighborhood += tm_elapsed
+    elif neighborhood == 4:
+        metrics.NumItersFourthNeighborhood += 1
+        metrics.CumulativeRuntimeFourthNeighborhood += tm_elapsed
 
     return solution
