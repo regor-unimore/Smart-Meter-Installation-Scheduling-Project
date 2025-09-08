@@ -98,7 +98,7 @@ elif args.argSolutionMethod == 'grasp':
                     metrics.RuntimeTieModel = tm.perf_counter() - t1
 
                 # Check whether a new current solution has been found
-                if newSolution.NPV - currentSolution.NPV > 0.01:
+                if newSolution.NPV - currentSolution.NPV > 0.001:
                     currentSolution.updateFromSolution(newSolution)
                     neighborhood = 1 # Reset iterator
                 else:
@@ -110,7 +110,7 @@ elif args.argSolutionMethod == 'grasp':
             graspFile.write(f"  {currentSolution.NPV:>17.2f} |")
 
         # Check whether a new incumbent solution has been found
-        if currentSolution.NPV - bestSolution.NPV > 0.01:
+        if currentSolution.NPV - bestSolution.NPV > 0.001:
             # Message for the user
             print('  New incumbent solution found!\n')
 
