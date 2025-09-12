@@ -38,8 +38,8 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
         # Message to the user
         print("\n> Using \'fix\' method no. {}...\n".format(neighborhood))
 
-        # Update number of iterations for 1st 'fix' method
-        metrics.NumItersFirstMethod += 1
+        # Update number of iterations for 1st 'neighborhood'
+        metrics.NumItersFirstNeighborhood += 1
 
         """ > 1st 'fix' method: fixes all variables for which a generated random value is greater than 'args.argBeta' """
         # Fix 'y' variables
@@ -73,8 +73,8 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
         # Message to the user
         print("\n> Using \'fix\' method no. {}...\n".format(neighborhood))
 
-        # Update number of iterations for 2nd 'fix' method
-        metrics.NumItersSecondMethod += 1
+        # Update number of iterations for 2nd 'neighborhood'
+        metrics.NumItersSecondNeighborhood += 1
 
         """ > 2nd 'fix' method: randomly chooses a 'k'-size list of meter groups and fixes all variables for these meter groups """
         # Define 'k' and randomly choose a 'k'-size set of unique meter groups
@@ -112,8 +112,8 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
         # Message to the user
         print("\n> Using \'fix\' method no. {}...\n".format(neighborhood))
 
-        # Update number of iterations for 3rd 'fix' method
-        metrics.NumItersThirdMethod += 1
+        # Update number of iterations for 3rd 'neighborhood'
+        metrics.NumItersThirdNeighborhood += 1
 
         """ > 3rd 'fix' method: randomly chooses a starting interval and fixes all variables for 'k' intervals from this (i.e., re-starting from the beginning if necessary) """
         # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
@@ -152,8 +152,8 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
         # Message to the user
         print("\n> Using \'fix\' method no. {}...\n".format(neighborhood))
 
-        # Update number of iterations for 4th 'fix' method
-        metrics.NumItersFourthMethod += 1
+        # Update number of iterations for 4th 'neighborhood'
+        metrics.NumItersFourthNeighborhood += 1
 
         """ > 4th 'fix' method: randomly chooses a 'k'-size list of meter groups, a starting interval, and fixes all variables outside the 'k' intervals from this for meter groups that are not in the list """
         # Define 'k' and randomly choose a 'k'-size set of unique meter groups
@@ -254,12 +254,12 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
 
     # Update 'metrics'
     if neighborhood == 1:
-        metrics.CumulativeRuntimeFirstMethod += tm.perf_counter() - t2
+        metrics.CumulativeRuntimeFirstNeighborhood += tm.perf_counter() - t2
     elif neighborhood == 2:
-        metrics.CumulativeRuntimeSecondMethod += tm.perf_counter() - t2
+        metrics.CumulativeRuntimeSecondNeighborhood += tm.perf_counter() - t2
     elif neighborhood == 3:
-        metrics.CumulativeRuntimeThirdMethod += tm.perf_counter() - t2
+        metrics.CumulativeRuntimeThirdNeighborhood += tm.perf_counter() - t2
     elif neighborhood == 4:
-        metrics.CumulativeRuntimeFourthMethod += tm.perf_counter() - t2
+        metrics.CumulativeRuntimeFourthNeighborhood += tm.perf_counter() - t2
 
     return solution
