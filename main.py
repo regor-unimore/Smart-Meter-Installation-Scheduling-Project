@@ -2,7 +2,7 @@
 from argumentParser import parseArguments
 from classes import Solution, Metrics
 from localSearch import variableMIPNeighborhoodDescent
-from model import SolutionCallback, createModel, modelStatus
+from model import createModel, modelStatus, solutionCallback
 from parameters import setupParameters, setupIndexes
 from semiGreedy import greedyRandomizedConstructiveHeuristics
 from utils import writeOutputModelFile, writeOutputAlgorithmFile
@@ -18,7 +18,7 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Create the model
-model, x, y, overline_y, z, S, R, X, D = createModel()
+m, x, y, overline_y, z, S, R, X, D = createModel()
 
 # Select the app based on 'argApp'
 
@@ -28,17 +28,21 @@ if args.argSolutionMethod == 'branch-and-cut':
     # Message for the user
     print('> Solving the model...\n')
 
-    # Create the solution callback
-    solutionCallback = SolutionCallback(instanceName)
+    # Clear the output file at the start
+    with open('callbacks/results_bc_' + instanceName + '.txt', "w") as cbFile:
+        cbFile.write("MIP solution callback(s):")
+        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
+        cbFile.write("\n|   Solution Node |       Incumbent |            Time |  Solution Count |")
+        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
 
     # Solve the model
-    try:
-        model.optimize(solutionCallback)
-    finally:
-        solutionCallback.close() # Ensure the file is properly closed
+    m.optimize(lambda model, where: solutionCallback(model, where, instanceName))
+
+    with open('callbacks/results_bc_' + instanceName + '.txt', "a") as cbFile:
+        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
 
     # Write the model solution to file
-    writeOutputModelFile(args.argInstanceName, model)
+    writeOutputModelFile(args.argInstanceName, m)
 
 # Run the algorithm
 elif args.argSolutionMethod == 'grasp':
@@ -82,14 +86,14 @@ elif args.argSolutionMethod == 'grasp':
         print('> Improving the solution via local search...\n')
 
         # Define 'neighborhood' iterator
-        neighborhood = 1
+        neighborhood = 2
 
-        while neighborhood <= 3:
+        while neighborhood <= 4:
             newSolution = currentSolution.copy()
-            newSolution.updateFromSolution(variableMIPNeighborhoodDescent(newSolution, model, x, y, overline_y, z, S, R, X, D, metrics, neighborhood))
+            newSolution.updateFromSolution(variableMIPNeighborhoodDescent(newSolution, m, x, y, overline_y, z, S, R, X, D, metrics, neighborhood))
 
             # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
-            if modelStatus(model) in [2, 9]:
+            if modelStatus(m) in [2, 9]:
                 # Message for the user
                 print("  NPV_new: {:.2f}\n".format(newSolution.NPV))
 
@@ -100,7 +104,7 @@ elif args.argSolutionMethod == 'grasp':
                 # Check whether a new current solution has been found
                 if newSolution.NPV - currentSolution.NPV > 0.001:
                     currentSolution.updateFromSolution(newSolution)
-                    neighborhood = 1 # Reset iterator
+                    neighborhood = 2 # Reset iterator
                 else:
                     neighborhood += 1 # Update iterator
             else:

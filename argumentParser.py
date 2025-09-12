@@ -39,17 +39,17 @@ def parseArguments():
         # Cardinality of the restricted candidate list in the greedy randomized constructive heuristics
         parser.add_argument('--alpha', action="store", type=int, required=False, help="Cardinality of the restricted candidate list in the greedy randomized constructive heuristics", dest="argAlpha")
 
-        # Parameter that guides the 4th 'neighborhood' within the local search
-        parser.add_argument('--beta', action="store", type=float, required=False, help="Parameter that guides the 4th \'neighborhood\' within the local search", dest="argBeta")
+        # 1st parameter for the local search
+        parser.add_argument('--beta', action="store", type=float, required=False, help="1st parameter for the local search", dest="argBeta")
 
-        # Parameter that guides the 1st 'neighborhood' within the local search
-        parser.add_argument('--chi', action="store", type=float, required=False, help="Parameter that guides the 1st \'neighborhood\' within the local search", dest="argChi")
+        # 2nd parameter for the local search
+        parser.add_argument('--chi', action="store", type=float, required=False, help="2nd parameter for the local search", dest="argChi")
 
-        # Parameter that guides the 2nd 'neighborhood' within the local search
-        parser.add_argument('--delta', action="store", type=float, required=False, help="Parameter that guides the 2nd \'neighborhood\' within the local search", dest="argDelta")
+        # 3rd parameter for the local search
+        parser.add_argument('--delta', action="store", type=float, required=False, help="3rd parameter for the local search", dest="argDelta")
 
-        # Parameter that guides the 3rd 'neighborhood' within the local search
-        parser.add_argument('--epsilon', action="store", type=float, required=False, help="Parameter that guides the 3rd \'neighborhood\' within the local search", dest="argEpsilon")
+        # 4th parameter for the local search
+        parser.add_argument('--epsilon', action="store", type=float, required=False, help="4th parameter for the local search", dest="argEpsilon")
 
         # Solution obtained with the model
         parser.add_argument('--solutionValue', action="store", type=float, required=False, help="Solution obtained using the \'branch-and-cut\' solution method", dest="argSolutionValue")
