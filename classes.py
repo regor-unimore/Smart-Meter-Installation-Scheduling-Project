@@ -26,9 +26,6 @@ class Metrics:
         # Runtime to find the best solution
         self.RuntimeBest = 0.0
 
-        # Current 'neighborhood'
-        self.Neighborhood = 0
-
         # Number of iterations in which 1st 'neighborhood' was used
         self.NumItersFirstNeighborhood = 0
 

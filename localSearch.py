@@ -30,9 +30,6 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
     # Reset 'model'
     model.reset()
 
-    # Update current 'neighborhood'
-    metrics.Neighborhood = neighborhood
-
     # Call the 'neighborhood'
     if neighborhood == 1:
         # Message to the user
