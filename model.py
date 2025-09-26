@@ -3,7 +3,6 @@ from argumentParser import parseArguments
 from parameters import setupParameters, setupIndexes
 import gurobipy as gp
 from gurobipy import GRB
-import os
 
 # Access the parsed arguments, parameters, and indexes
 args = parseArguments()
@@ -17,17 +16,28 @@ def createModel():
     # Message for the user
     print("> Creating the model...\n")
 
+    # Create explicit environment
+    env = gp.Env(empty=True)
+    env.setParam("OutputFlag", 1) # Control logging explicitly
+    env.start()
+
     # Define 'modelName'
     modelName = "SMISP_" + instanceName
 
     # Create the model
-    model = gp.Model(modelName)
+    model = gp.Model(modelName, env=env)
+
+    # Default 'Seed' value of the solver for reproducibility control
+    model.setParam("Seed", 0)
 
     # Tolerance value for the solver
     model.setParam("MIPGap", args.argMipGap)
 
     # Time limit for the solver (in seconds)
-    model.setParam("TimeLimit", args.argTimeLimit)
+    # model.setParam("TimeLimit", args.argTimeLimit)
+
+    # Work limit for the solver
+    model.setParam("WorkLimit", args.argTimeLimit)
 
     # Thread count for the solver
     model.setParam("Threads", args.argThreads)
@@ -133,13 +143,14 @@ def createModel():
     # Constraints (18)
     model.addConstrs((R[p] == D[p - 2] + r * gp.quicksum((X[varphi] - D[varphi]) for varphi in range((p - 2) + 1)) for p in range(3, P + 1)), name="C18")
 
-    # Valid inequality (1)
-    # model.addConstrs((y[j, t] <= (1 - gp.quicksum(overline_y[j, tau] for tau in range(t))) for j in meter_groups for t in intervals), name="VI1")
+    # Update model to ensure fingerprint is available
+    model.update()
 
-    # Valid inequality (2)
-    # model.addConstrs((y.sum(j, "*") >= m.ceil(N[j] / Q) for j in meter_groups), name="VI2")
+    # Get and log fingerprint for verification
+    fingerprint = model.getAttr("Fingerprint")
+    print(f"> Model fingerprint: 0x{fingerprint:08x}")
 
-    return model, x, y, overline_y, z, S, R, X, D
+    return model, env, x, y, overline_y, z, S, R, X, D
 
 def modelStatus(model):
     if model.Status == GRB.LOADED:

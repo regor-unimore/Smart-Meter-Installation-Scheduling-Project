@@ -18,131 +18,136 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Create the model
-m, x, y, overline_y, z, S, R, X, D = createModel()
+m, env, x, y, overline_y, z, S, R, X, D = createModel()
 
-# Select the app based on 'argApp'
+# Use context managers for proper resource management
+with env, m:
 
-# Run the model
-if args.argSolutionMethod == 'branch-and-cut':
-
-    # Message for the user
-    print('> Solving the model...\n')
-
-    # Clear the output file at the start
-    with open('callbacks/results_bc_' + instanceName + '.txt', "w") as cbFile:
-        cbFile.write("MIP solution callback(s):")
-        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
-        cbFile.write("\n|   Solution Node |       Incumbent |            Time |  Solution Count |")
-        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
-
-    # Solve the model
-    m.optimize(lambda model, where: solutionCallback(model, where, instanceName))
-
-    with open('callbacks/results_bc_' + instanceName + '.txt', "a") as cbFile:
-        cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
-
-    # Write the model solution to file
-    writeOutputModelFile(args.argInstanceName, m)
-
-# Run the algorithm
-elif args.argSolutionMethod == 'grasp':
-
-    # Message for the user
-    print('\n> Running the algorithm...\n')
-
-    # Define object 'bestSolution' of class 'Solution'
-    bestSolution = Solution()
-
-    # Get 'start_tm'
-    t1 = tm.perf_counter()
-
-    # Define object 'metrics' of class 'Metrics'
-    metrics = Metrics()
-
-    # Clear the output file at the start
-    with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_'+ str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "w") as graspFile:
-        graspFile.write("Solution improvement(s):")
-        graspFile.write("\n+-------------------+-------------------+--------------------+")
-        graspFile.write("\n|         Iteration | NPV (semi-greedy) | NPV (local search) |")
-        graspFile.write("\n+-------------------+-------------------+--------------------+")
-
-    # Main loop of the algorithm
-    while metrics.NumIters < args.argMaxIter:
-        # Message for the user
-        print('> Iteration: {}\n'.format(metrics.NumIters))
-
-        # SOLUTION CONSTRUCTION: run the semi-greedy (or randomized-greedy) algorithm
-        currentSolution = greedyRandomizedConstructiveHeuristics()
+    # Run the model
+    if args.argSolutionMethod == "branch-and-cut":
 
         # Message for the user
-        print('  NPV_curr: {:.2f}\n'.format(currentSolution.NPV))
+        print("> Solving the model...\n")
 
-        with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:
-            graspFile.write(f"\n| {metrics.NumIters:>17.0f} | {currentSolution.NPV:>17.2f} |")
+        # Clear the output file at the start
+        with open("callbacks/results_bc_" + instanceName + '.txt', "w") as cbFile:
+            cbFile.write("MIP solution callback(s):")
+            cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
+            cbFile.write("\n|   Solution Node |       Incumbent |            Time |  Solution Count |")
+            cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
 
-        # LOCAL SEARCH: run the Variable MIP Neighborhood Descent
+        # Solve the model
+        try:
+            m.optimize(lambda model, where: solutionCallback(model, where, instanceName))
+
+            with open("callbacks/results_bc_" + instanceName + ".txt", "a") as cbFile:
+                cbFile.write("\n+-----------------+-----------------+-----------------+-----------------+")
+
+            # Write the model solution to file
+            writeOutputModelFile(args.argInstanceName, m)
+
+        except Exception as e:
+            print(f"\n> Optimization failed: {e}\n")
+
+    # Run the algorithm
+    elif args.argSolutionMethod == 'grasp':
 
         # Message for the user
-        print('> Improving the solution via local search...\n')
+        print("\n> Running the algorithm...\n")
 
-        # Define 'neighborhood' iterator
-        neighborhood = 2
+        # Define object 'bestSolution' of class 'Solution'
+        bestSolution = Solution()
 
-        while neighborhood <= 4:
-            newSolution = currentSolution.copy()
-            newSolution.updateFromSolution(variableMIPNeighborhoodDescent(newSolution, m, x, y, overline_y, z, S, R, X, D, metrics, neighborhood))
+        # Get 'start_tm'
+        t1 = tm.perf_counter()
 
-            # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
-            if modelStatus(m) in [2, 9]:
-                # Message for the user
-                print("  NPV_new: {:.2f}\n".format(newSolution.NPV))
+        # Define object 'metrics' of class 'Metrics'
+        metrics = Metrics()
 
-                # Check whether the solution of the model has been tied or improved
-                if metrics.RuntimeTieModel is None and args.argSolutionValue is not None and (abs(newSolution.NPV - args.argSolutionValue) <= 0.01 or newSolution.NPV - args.argSolutionValue > 0.01):
-                    metrics.RuntimeTieModel = tm.perf_counter() - t1
+        # Clear the output file at the start
+        with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_"+ str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "w") as graspFile:
+            graspFile.write("Solution improvement(s):")
+            graspFile.write("\n+-------------------+-------------------+--------------------+")
+            graspFile.write("\n|         Iteration | NPV (semi-greedy) | NPV (local search) |")
+            graspFile.write("\n+-------------------+-------------------+--------------------+")
 
-                # Check whether a new current solution has been found
-                if newSolution.NPV - currentSolution.NPV > 0.001:
-                    currentSolution.updateFromSolution(newSolution)
-                    neighborhood = 2 # Reset iterator
-                else:
-                    neighborhood += 1 # Update iterator
-            else:
-                neighborhood += 1  # Update iterator
-
-        with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:
-            graspFile.write(f"  {currentSolution.NPV:>17.2f} |")
-
-        # Check whether a new incumbent solution has been found
-        if currentSolution.NPV - bestSolution.NPV > 0.001:
+        # Main loop of the algorithm
+        while metrics.NumIters < args.argMaxIter:
             # Message for the user
-            print('  New incumbent solution found!\n')
+            print(f"> Iteration: {metrics.NumIters}\n")
 
-            # Update 'metrics'
-            metrics.NumItersBest = metrics.NumIters
-            metrics.RuntimeBest = tm.perf_counter() - t1
+            # SOLUTION CONSTRUCTION: run the semi-greedy (or randomized-greedy) algorithm
+            currentSolution = greedyRandomizedConstructiveHeuristics()
 
-            # Update 'best_solution'
-            bestSolution.updateFromSolution(currentSolution)
+            # Message for the user
+            print(f"  NPV_curr: {currentSolution.NPV:.2f}\n")
 
-        # Increment 'NumIters'
-        metrics.NumIters += 1
+            with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
+                graspFile.write(f"\n| {metrics.NumIters:>17.0f} | {currentSolution.NPV:>17.2f} |")
 
-        # Check whether the time limit has been reached
-        if tm.perf_counter() - t1 >= 3600.0:
-            break
+            # LOCAL SEARCH: run the Variable MIP Neighborhood Descent
 
-    with open('output/info/results_grasp_' + instanceName + '_' + str(args.argAlpha) + '_' + str(args.argBeta).replace('.', '_') + '_' + str(args.argChi).replace('.', '_') + '_' + str(args.argDelta).replace('.', '_') + '_' + str(args.argEpsilon).replace('.', '_') + '_' + str(args.argMaxIter) + '_' + str(args.argSeed) + '.txt', "a") as graspFile:
-        graspFile.write("\n+-------------------+-------------------+--------------------+")
+            # Message for the user
+            print("> Improving the solution via local search...\n")
 
-    # Compute 'Runtime'
-    metrics.Runtime = tm.perf_counter() - t1
+            # Define 'neighborhood' iterator
+            neighborhood = 2
 
-    # Message for the user
-    print('> Process finished!\n')
+            while neighborhood <= 4:
+                newSolution = currentSolution.copy()
+                newSolution.updateFromSolution(variableMIPNeighborhoodDescent(newSolution, m, x, y, overline_y, z, S, R, X, D, metrics, neighborhood))
 
-    # Message for the user
-    print('  NPV_best: {:.2f}'.format(bestSolution.NPV))
+                # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
+                if modelStatus(m) in [2, 9]:
+                    # Message for the user
+                    print(f"  NPV_new: {newSolution.NPV:.2f}\n")
 
-    # Write the best solution to file
-    writeOutputAlgorithmFile(args.argInstanceName, bestSolution, metrics, periods, meter_groups, intervals, args.argAlpha, args.argBeta, args.argChi, args.argDelta, args.argEpsilon, args.argMaxIter, args.argSeed)
+                    # Check whether the solution of the model has been tied or improved
+                    if metrics.RuntimeTieModel is None and args.argSolutionValue is not None and (abs(newSolution.NPV - args.argSolutionValue) <= 0.01 or newSolution.NPV - args.argSolutionValue > 0.01):
+                        metrics.RuntimeTieModel = tm.perf_counter() - t1
+
+                    # Check whether a new current solution has been found
+                    if newSolution.NPV - currentSolution.NPV > 0.001:
+                        currentSolution.updateFromSolution(newSolution)
+                        neighborhood = 2 # Reset iterator
+                    else:
+                        neighborhood += 1 # Update iterator
+                else:
+                    neighborhood += 1  # Update iterator
+
+            with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
+                graspFile.write(f"  {currentSolution.NPV:>17.2f} |")
+
+            # Check whether a new incumbent solution has been found
+            if currentSolution.NPV - bestSolution.NPV > 0.001:
+                # Message for the user
+                print("  New incumbent solution found!\n")
+
+                # Update 'metrics'
+                metrics.NumItersBest = metrics.NumIters
+                metrics.RuntimeBest = tm.perf_counter() - t1
+
+                # Update 'best_solution'
+                bestSolution.updateFromSolution(currentSolution)
+
+            # Increment 'NumIters'
+            metrics.NumIters += 1
+
+            # Check whether the time limit has been reached
+            if tm.perf_counter() - t1 >= 3600.0:
+                break
+
+        with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
+            graspFile.write("\n+-------------------+-------------------+--------------------+")
+
+        # Compute 'Runtime'
+        metrics.Runtime = tm.perf_counter() - t1
+
+        # Message for the user
+        print("> Process finished!\n")
+
+        # Message for the user
+        print(f"  NPV_best: {bestSolution.NPV:.2f}")
+
+        # Write the best solution to file
+        writeOutputAlgorithmFile(args.argInstanceName, bestSolution, metrics, periods, meter_groups, intervals, args.argAlpha, args.argBeta, args.argChi, args.argDelta, args.argEpsilon, args.argMaxIter, args.argSeed)
