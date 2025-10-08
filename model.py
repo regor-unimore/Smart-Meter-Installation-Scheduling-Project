@@ -18,7 +18,25 @@ def createModel():
 
     # Create explicit environment
     env = gp.Env(empty=True)
-    env.setParam("OutputFlag", 1) # Control logging explicitly
+
+    # ============================================================================
+    # LOGGING PARAMETERS - Configure detailed tracking
+    # ============================================================================
+
+    # Basic output control
+    env.setParam("OutputFlag", 1) # Enable console output
+    env.setParam("LogToConsole", 1) # Log to console
+
+    # --- DEBUG ONLY
+    # File logging - CRITICAL for comparing behavior
+    # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # log_filepath = f"log/gurobi_model_{instanceName}_{timestamp}.log"
+    # env.setParam("LogFile", log_filepath)
+    # print(f"> Logging to file: {log_filepath}\n")
+
+    # ============================================================================
+
+    # Start environment
     env.start()
 
     # Define 'modelName'
@@ -34,13 +52,26 @@ def createModel():
     model.setParam("MIPGap", args.argMipGap)
 
     # Time limit for the solver (in seconds)
-    # model.setParam("TimeLimit", args.argTimeLimit)
+    model.setParam("TimeLimit", args.argTimeLimit)
 
-    # Work limit for the solver
-    model.setParam("WorkLimit", args.argTimeLimit)
+    # Work limit for the solver (for reproducible experiments)
+    # model.setParam("WorkLimit", args.argTimeLimit)
 
     # Thread count for the solver
     model.setParam("Threads", args.argThreads)
+
+    # ============================================================================
+    # ADDITIONAL LOGGING PARAMETERS for debugging
+    # ============================================================================
+
+    # PreCrush: Controls consolidation of cuts during presolve
+    # Setting to 1 (default) is fine, but knowing this helps understand logs
+    # model.setParam("PreCrush", 1)
+
+    # PreSparsify: Controls whether presolve reduces coefficient matrix
+    # model.setParam("PreSparsify", -1)  # -1 = automatic (default)
+
+    # ============================================================================
 
     """ Create the operational variables """
 
@@ -146,47 +177,21 @@ def createModel():
     # Update model to ensure fingerprint is available
     model.update()
 
+    # --- DEBUG ONLY ---
     # Get and log fingerprint for verification
-    fingerprint = model.getAttr("Fingerprint")
-    print(f"> Model fingerprint: 0x{fingerprint:08x}")
+    # fingerprint = model.getAttr("Fingerprint")
+    # print(f"> Model fingerprint: 0x{fingerprint:08x}")
+
+    # --- DEBUG ONLY ---
+    # Log initial model statistics
+    # print(f"> Model statistics:")
+    # print(f"  - variables: {model.NumVars} ({model.NumIntVars} integer, {model.NumBinVars} binary)")
+    # print(f"  - constraints: {model.NumConstrs}")
+    # print(f"  - non-zeros: {model.NumNZs}")
+    # print(f"  - log file: {log_filepath}")
 
     return model, env, x, y, overline_y, z, S, R, X, D
 
-def modelStatus(model):
-    if model.Status == GRB.LOADED:
-        return 1
-    elif model.Status == GRB.OPTIMAL:
-        return 2
-    elif model.Status == GRB.INFEASIBLE:
-        return 3
-    elif model.Status == GRB.INF_OR_UNBD:
-        return 4
-    elif model.Status == GRB.UNBOUNDED:
-        return 5
-    elif model.Status == GRB.CUTOFF:
-        return 6
-    elif model.Status == GRB.ITERATION_LIMIT:
-        return 7
-    elif model.Status == GRB.NODE_LIMIT:
-        return 8
-    elif model.Status == GRB.TIME_LIMIT:
-        return 9
-    elif model.Status == GRB.SOLUTION_LIMIT:
-        return 10
-    elif model.Status == GRB.INTERRUPTED:
-        return 11
-    elif model.Status == GRB.NUMERIC:
-        return 12
-    elif model.Status == GRB.SUBOPTIMAL:
-        return 13
-    elif model.Status == GRB.INPROGRESS:
-        return 14
-    elif model.Status == GRB.USER_OBJ_LIMIT:
-        return 15
-    elif model.Status == GRB.WORK_LIMIT:
-        return 16
-    elif model.Status == GRB.MEM_LIMIT:
-        return 17
 
 def solutionCallback(model, where, cbFilename):
     if where == GRB.Callback.MIPSOL:

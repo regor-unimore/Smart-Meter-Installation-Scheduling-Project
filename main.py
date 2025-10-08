@@ -1,10 +1,11 @@
 # import
 from argumentParser import parseArguments
-from classes import Solution, Metrics
-from localSearch import variableMIPNeighborhoodDescent
-from model import createModel, modelStatus, solutionCallback
 from parameters import setupParameters, setupIndexes
+from classes import Solution, Metrics
+from gurobipy import GRB
+from model import createModel, solutionCallback
 from semiGreedy import greedyRandomizedConstructiveHeuristics
+from localSearch import variableMIPNeighborhoodDescent
 from utils import writeOutputModelFile, writeOutputAlgorithmFile
 import time as tm
 
@@ -21,7 +22,7 @@ P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP
 m, env, x, y, overline_y, z, S, R, X, D = createModel()
 
 # Use context managers for proper resource management
-with env, m:
+with (env, m):
 
     # Run the model
     if args.argSolutionMethod == "branch-and-cut":
@@ -80,7 +81,7 @@ with env, m:
             currentSolution = greedyRandomizedConstructiveHeuristics()
 
             # Message for the user
-            print(f"  NPV_curr: {currentSolution.NPV:.2f}\n")
+            print(f"--> NPV_curr: {currentSolution.NPV:.2f}\n")
 
             with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
                 graspFile.write(f"\n| {metrics.NumIters:>17.0f} | {currentSolution.NPV:>17.2f} |")
@@ -88,32 +89,89 @@ with env, m:
             # LOCAL SEARCH: run the Variable MIP Neighborhood Descent
 
             # Message for the user
-            print("> Improving the solution via local search...\n")
+            print("> Improving the solution via variable MIP neighborhood descent...\n")
 
             # Define 'neighborhood' iterator
             neighborhood = 2
 
             while neighborhood <= 4:
+                # Copy current solution
                 newSolution = currentSolution.copy()
-                newSolution.updateFromSolution(variableMIPNeighborhoodDescent(newSolution, m, x, y, overline_y, z, S, R, X, D, metrics, neighborhood))
 
-                # If model status is 2 -- 'OPTIMAL' or 9 -- 'TIME_LIMIT'
-                if modelStatus(m) in [2, 9]:
-                    # Message for the user
-                    print(f"  NPV_new: {newSolution.NPV:.2f}\n")
+                # Apply neighborhood descent and CAPTURE the model status
+                newSolution, status, solution_count = variableMIPNeighborhoodDescent(newSolution, m, x, y, overline_y, z, S, R, X, D, metrics, neighborhood)
+
+                # Define acceptable statuses
+                acceptable_statuses = {
+                    GRB.OPTIMAL,
+                    GRB.TIME_LIMIT,
+                    GRB.SUBOPTIMAL,
+                    GRB.SOLUTION_LIMIT,
+                    GRB.INTERRUPTED,
+                    GRB.USER_OBJ_LIMIT
+                }
+
+                # Use the CAPTURED model status and solution count, not 'model.Status'
+                # (because 'model.Status' is now LOADED after update())
+                if status in acceptable_statuses and solution_count > 0:
+                    print(f"--> NPV_new: {newSolution.NPV:.2f}\n")
 
                     # Check whether the solution of the model has been tied or improved
-                    if metrics.RuntimeTieModel is None and args.argSolutionValue is not None and (abs(newSolution.NPV - args.argSolutionValue) <= 0.01 or newSolution.NPV - args.argSolutionValue > 0.01):
+                    if (metrics.RuntimeTieModel is None and args.argSolutionValue is not None and (abs(newSolution.NPV - args.argSolutionValue) <= 0.01 or newSolution.NPV - args.argSolutionValue > 0.01)):
                         metrics.RuntimeTieModel = tm.perf_counter() - t1
 
                     # Check whether a new current solution has been found
+                    # Using tolerance of 0.001 to handle numerical precision
                     if newSolution.NPV - currentSolution.NPV > 0.001:
+                        # --- DEBUG ONLY
+                        # print(f"> Improvement found: {newSolution.NPV - currentSolution.NPV:.2f}\n")
+
+                        # Update current solution
                         currentSolution.updateFromSolution(newSolution)
-                        neighborhood = 2 # Reset iterator
+
+                        # Reset 'neighborhood' iterator to explore the same neighborhood again
+                        neighborhood = 2
+
+                        # --- DEBUG ONLY ---
+                        # print("> Resetting \'neighborhood\' iterator...\n")
                     else:
-                        neighborhood += 1 # Update iterator
+                        # --- DEBUG ONLY ---
+                        # print(f"> No significant improvement in neighborhood {neighborhood}\n")
+
+                        # Explore the next neighborhood
+                        neighborhood += 1
+
+                        # --- DEBUG ONLY ---
+                        # print(f"> Moving to neighborhood {neighborhood}\n")
                 else:
-                    neighborhood += 1  # Update iterator
+                    # No feasible solution found in this neighborhood
+                    status_names = {
+                        1: "LOADED",
+                        2: "OPTIMAL",
+                        3: "INFEASIBLE",
+                        4: "INF_OR_UNBD",
+                        5: "UNBOUNDED",
+                        6: "CUTOFF",
+                        7: "ITERATION_LIMIT",
+                        8: "NODE_LIMIT",
+                        9: "TIME_LIMIT",
+                        10: "SOLUTION_LIMIT",
+                        11: "INTERRUPTED",
+                        12: "NUMERIC",
+                        13: "SUBOPTIMAL",
+                        15: "USER_OBJ_LIMIT"
+                    }
+
+                    # Get status name
+                    status_name = status_names.get(status, f"UNKNOWN({status})")
+
+                    # --- DEBUG ONLY ---
+                    print(f"> No feasible solution found in neighborhood {neighborhood}:")
+                    print(f"> - status: {status} ({status_name})")
+                    print(f"> - solution count: {solution_count}")
+
+                    # Explore the next neighborhood
+                    neighborhood += 1
 
             with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
                 graspFile.write(f"  {currentSolution.NPV:>17.2f} |")
@@ -121,7 +179,7 @@ with env, m:
             # Check whether a new incumbent solution has been found
             if currentSolution.NPV - bestSolution.NPV > 0.001:
                 # Message for the user
-                print("  New incumbent solution found!\n")
+                print("--> New incumbent solution found!\n")
 
                 # Update 'metrics'
                 metrics.NumItersBest = metrics.NumIters
@@ -147,7 +205,7 @@ with env, m:
         print("> Process finished!\n")
 
         # Message for the user
-        print(f"  NPV_best: {bestSolution.NPV:.2f}")
+        print(f"--> NPV_best: {bestSolution.NPV:.2f}")
 
         # Write the best solution to file
         writeOutputAlgorithmFile(args.argInstanceName, bestSolution, metrics, periods, meter_groups, intervals, args.argAlpha, args.argBeta, args.argChi, args.argDelta, args.argEpsilon, args.argMaxIter, args.argSeed)
