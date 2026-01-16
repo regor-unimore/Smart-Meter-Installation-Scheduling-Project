@@ -1,15 +1,10 @@
 # import
-from argumentParser import parseArguments
+from config import (args, J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C,
+                    instanceName, P, periods, meter_groups, substitution_squads, intervals)
 from classes import Solution
-from parameters import setupParameters, setupIndexes
 import math as m
 import numpy as np
 import random as rnd
-
-# Access the parsed arguments, parameters, and indexes
-args = parseArguments()
-J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstanceName)
-P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # Initialize the pseudo-random number generator
 rnd.seed(args.argSeed)

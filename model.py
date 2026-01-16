@@ -1,13 +1,8 @@
 # import
-from argumentParser import parseArguments
-from parameters import setupParameters, setupIndexes
+from config import (args, J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C,
+                    instanceName, P, periods, meter_groups, substitution_squads, intervals)
 import gurobipy as gp
 from gurobipy import GRB
-
-# Access the parsed arguments, parameters, and indexes
-args = parseArguments()
-J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstanceName)
-P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Function(s) for the MILP model
@@ -26,13 +21,6 @@ def createModel():
     # Basic output control
     env.setParam("OutputFlag", 1) # Enable console output
     env.setParam("LogToConsole", 1) # Log to console
-
-    # --- DEBUG ONLY
-    # File logging - CRITICAL for comparing behavior
-    # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    # log_filepath = f"log/gurobi_model_{instanceName}_{timestamp}.log"
-    # env.setParam("LogFile", log_filepath)
-    # print(f"> Logging to file: {log_filepath}\n")
 
     # ============================================================================
 
@@ -59,17 +47,6 @@ def createModel():
 
     # Thread count for the solver
     model.setParam("Threads", args.argThreads)
-
-    # ============================================================================
-    # ADDITIONAL LOGGING PARAMETERS for debugging
-    # ============================================================================
-
-    # PreCrush: Controls consolidation of cuts during presolve
-    # Setting to 1 (default) is fine, but knowing this helps understand logs
-    # model.setParam("PreCrush", 1)
-
-    # PreSparsify: Controls whether presolve reduces coefficient matrix
-    # model.setParam("PreSparsify", -1)  # -1 = automatic (default)
 
     # ============================================================================
 
@@ -176,19 +153,6 @@ def createModel():
 
     # Update model to ensure fingerprint is available
     model.update()
-
-    # --- DEBUG ONLY ---
-    # Get and log fingerprint for verification
-    # fingerprint = model.getAttr("Fingerprint")
-    # print(f"> Model fingerprint: 0x{fingerprint:08x}")
-
-    # --- DEBUG ONLY ---
-    # Log initial model statistics
-    # print(f"> Model statistics:")
-    # print(f"  - variables: {model.NumVars} ({model.NumIntVars} integer, {model.NumBinVars} binary)")
-    # print(f"  - constraints: {model.NumConstrs}")
-    # print(f"  - non-zeros: {model.NumNZs}")
-    # print(f"  - log file: {log_filepath}")
 
     return model, env, x, y, overline_y, z, S, R, X, D
 

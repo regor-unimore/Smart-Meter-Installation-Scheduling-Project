@@ -1,6 +1,6 @@
 # import
-from argumentParser import parseArguments
-from parameters import setupParameters, setupIndexes
+from config import (args, J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C,
+                    instanceName, P, periods, meter_groups, substitution_squads, intervals)
 from classes import Solution, Metrics
 from gurobipy import GRB
 from model import createModel, solutionCallback
@@ -8,11 +8,6 @@ from semiGreedy import greedyRandomizedConstructiveHeuristics
 from localSearch import variableMIPNeighborhoodDescent
 from utils import writeOutputModelFile, writeOutputAlgorithmFile
 import time as tm
-
-# Access the parsed arguments, parameters, and indexes
-args = parseArguments()
-J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C, instanceName = setupParameters(args.argPath, args.argInstanceName)
-P, periods, meter_groups, substitution_squads, intervals = setupIndexes(J, K, SP, DH, T)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Main
@@ -117,32 +112,21 @@ with (env, m):
                     print(f"--> NPV_new: {newSolution.NPV:.2f}\n")
 
                     # Check whether the solution of the model has been tied or improved
-                    if (metrics.RuntimeTieModel is None and args.argSolutionValue is not None and (abs(newSolution.NPV - args.argSolutionValue) <= 0.01 or newSolution.NPV - args.argSolutionValue > 0.01)):
+                    if metrics.RuntimeTieModel is None and args.argSolutionValue is not None and (abs(newSolution.NPV - args.argSolutionValue) <= 0.01 or newSolution.NPV - args.argSolutionValue > 0.01):
                         metrics.RuntimeTieModel = tm.perf_counter() - t1
 
                     # Check whether a new current solution has been found
                     # Using tolerance of 0.001 to handle numerical precision
                     if newSolution.NPV - currentSolution.NPV > 0.001:
-                        # --- DEBUG ONLY
-                        # print(f"> Improvement found: {newSolution.NPV - currentSolution.NPV:.2f}\n")
 
                         # Update current solution
                         currentSolution.updateFromSolution(newSolution)
 
                         # Reset 'neighborhood' iterator to explore the same neighborhood again
                         neighborhood = 2
-
-                        # --- DEBUG ONLY ---
-                        # print("> Resetting \'neighborhood\' iterator...\n")
                     else:
-                        # --- DEBUG ONLY ---
-                        # print(f"> No significant improvement in neighborhood {neighborhood}\n")
-
                         # Explore the next neighborhood
                         neighborhood += 1
-
-                        # --- DEBUG ONLY ---
-                        # print(f"> Moving to neighborhood {neighborhood}\n")
                 else:
                     # No feasible solution found in this neighborhood
                     status_names = {
@@ -165,11 +149,6 @@ with (env, m):
                     # Get status name
                     status_name = status_names.get(status, f"UNKNOWN({status})")
 
-                    # --- DEBUG ONLY ---
-                    print(f"> No feasible solution found in neighborhood {neighborhood}:")
-                    print(f"> - status: {status} ({status_name})")
-                    print(f"> - solution count: {solution_count}")
-
                     # Explore the next neighborhood
                     neighborhood += 1
 
@@ -191,9 +170,9 @@ with (env, m):
             # Increment 'NumIters'
             metrics.NumIters += 1
 
-            # Check whether the time limit has been reached
-            if tm.perf_counter() - t1 >= 3600.0:
-                break
+            # Check whether the time limit has been reached -- DISABLED
+            # if tm.perf_counter() - t1 >= 3600.0:
+            #     break
 
         with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
             graspFile.write("\n+-------------------+-------------------+--------------------+")
