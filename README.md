@@ -1,4 +1,4 @@
-# Smart-Mater-Installation-Scheduling-Project
+# Smart-Meter-Installation-Scheduling-Project
 
 Private repository containing the code, the instance generator, and the randomly created instances for the "Smart-Meter Installation Scheduling Project".
 
