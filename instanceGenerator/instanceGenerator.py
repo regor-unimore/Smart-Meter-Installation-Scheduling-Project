@@ -9,10 +9,10 @@ import random as rnd
 parser = argparse.ArgumentParser()
 
 # Number of jobs
-parser.add_argument('-j', '--jobs', action="store", type=int, required=True, help="Number of jobs", dest="argJobs")
+parser.add_argument('-j', '--groups', action="store", type=int, required=True, help="Number of meter groups jobs", dest="argGroups")
 
 # Number of machines
-parser.add_argument('-k', '--machines', action="store", type=int, required=True, help="Number of machines", dest="argMachines")
+parser.add_argument('-k', '--teams', action="store", type=int, required=True, help="Number of teams of technicians", dest="argTeams")
 
 # Range values for uniform distribution (lower and upper, respectively)
 parser.add_argument('-a', action="store", type=int, required=True, help="Lower value", dest="argLower")
@@ -34,20 +34,20 @@ args = parser.parse_args()
 # Instance generator
 # ----------------------------------------------------------------------------------------------------------------------
 # Define 'instanceName'
-instanceName = 'instance_' + str(args.argJobs) + '_' + str(args.argMachines) + '_' + args.argYear + '_' + str(args.argId)
+instanceName = 'instance_' + str(args.argGroups) + '_' + str(args.argTeams) + '_' + args.argYear + '_' + str(args.argId)
 
 with open('instances/' + instanceName + '.txt', 'w') as instance:
     # 'J' meter groups
     instance.write('# \'J\' meter groups')
-    J = args.argJobs
+    J = args.argGroups
     instance.write('\n{}'.format(J))
 
-    # 'K' substitution squads
-    instance.write('\n\n# \'K\' substitution squads')
-    K = args.argMachines
+    # 'K' teams of technicians
+    instance.write('\n\n# \'K\' teams of technicians')
+    K = args.argTeams
     instance.write('\n{}'.format(K))
 
-    # 'SP' is the duration of the operational horizon (i.e., in years)
+    # 'SP' is the duration of the operational horizon (i.e., expressed in years)
     SP = 3  # -- HARDCODED
 
     # 'T' time intervals per year
@@ -55,8 +55,8 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
     T = 52 # -- HARDCODED
     instance.write('\n{}'.format(T))
 
-    # 'Nj' traditional meters to be substituted in meter group j
-    instance.write('\n\n# \'Nj\' traditional meters to be substituted in meter group j')
+    # 'Nj' traditional meters to be replaced in meter group j
+    instance.write('\n\n# \'Nj\' traditional meters to be replaced in meter group j')
     N = []
     for _ in range(J):
         # Uniform distribution
@@ -66,13 +66,13 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
         # Append the generated value to list 'N'
         N.append(uniform_value)
 
-    # 'Q' installation capacity (for each substitution squad)
-    instance.write('\n\n# \'Q\' installation capacity (for each substitution squad)')
+    # 'Q' installation capacity (for each team)
+    instance.write('\n\n# \'Q\' installation capacity (for each team)')
     Q = args.argCapacity
     instance.write('\n{}'.format(Q))
 
-    # 'bjt' takes value 1 if substitutions can occur in meter group j (row) during time interval t (column), 0 otherwise
-    instance.write('\n\n# \'bjt\' takes value 1 if substitutions can occur in meter group j (row) during time interval t (column), 0 otherwise')
+    # 'bjt' takes value 1 if replacements can occur in meter group j (row) during time interval t (column), 0 otherwise
+    instance.write('\n\n# \'bjt\' takes value 1 if replacements can occur in meter group j (row) during time interval t (column), 0 otherwise')
 
     # Define a 'readings' dictionary with all possible combinations -- HARDCODED
     readings = {
@@ -217,15 +217,15 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
     for j in range(J):
         instance.write(' '.join(map(str, b[j])) + '\n') # We need a '\n' less in the following
 
-    # 'sigma' meter groups that can be served in a time interval (by the same substitution squad)
-    instance.write('\n\'sigma\' meter groups that can be served in a time interval (by the same substitution squad)')
+    # 'sigma' meter groups that can be worked in a time interval (by the same team)
+    instance.write('\n# \'sigma\' meter groups that can be worked in a time interval (by the same team)')
     sigma = 2 # -- HARDCODED
     instance.write('\n{}'.format(sigma))
 
-    # 'Sjt' conditional cost savings obtained for meter group j (row) during each time interval t if readings are collected by smart meters instead of traditional meters
-    instance.write('\n\n# \'Sjt\' conditional cost savings obtained for meter group j (row) during each time interval t if readings are collected by smart meters instead of traditional meters')
+    # 'Sjt' cost savings obtained for meter group j (row) during each time interval t if readings are collected by smart meters instead of traditional meters
+    instance.write('\n\n# \'Sjt\' cost savings obtained for meter group j (row) during each time interval t if readings are collected by smart meters instead of traditional meters')
 
-    # Define a 'savings' dictionary with unitary conditional cost savings -- HARDCODED
+    # Define a 'savings' dictionary with unitary cost savings -- HARDCODED
     savings = {
         '2021': {
             'gen-lug': 0.2729,
@@ -269,8 +269,8 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
     for j in range(J):
         instance.write(' '.join(map(str, S1[j])) + '\n')  # We need a '\n' less in the following
 
-    # 'Sj' annual conditional cost savings
-    instance.write('\n# \'Sj\' annual conditional cost savings')
+    # 'Sj' annual cost savings
+    instance.write('\n# \'Sj\' annual cost savings')
 
     # Create 'S2' list
     S2 = [round(sum(S1[j][t] for t in range(T)), 2) for j in range(J)]
@@ -307,8 +307,8 @@ with open('instances/' + instanceName + '.txt', 'w') as instance:
     gamma = 0.24 # --HARDCODED
     instance.write('\n{:.2f}'.format(gamma))
 
-    # 'C' investment cost for the purchase and installation of a smart meter
-    instance.write('\n\n# \'C\' investment cost for the purchase and installation of a smart meter')
+    # 'C' investment cost to buy and install each smart meter
+    instance.write('\n\n# \'C\' investment cost to buy and install each smart meter')
     C = 98.00 # -- HARDCODED
     instance.write('\n{:.2f}'.format(C))
 
