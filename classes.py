@@ -1,6 +1,5 @@
 # import
-from config import (args, J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C,
-                    instanceName, P, periods, meter_groups, substitution_squads, intervals)
+from config import groups, intervals, periods, r
 import math as m
 import numpy as np
 
@@ -39,30 +38,24 @@ class Metrics:
         # Cumulative runtime for 3rd 'neighborhood' was used
         self.CumulativeRuntimeThirdNeighborhood = 0.0
 
-        # Number of iterations in which 4th 'neighborhood' was used
-        self.NumItersFourthNeighborhood = 0
-
-        # Cumulative runtime for 4th 'neighborhood' was used
-        self.CumulativeRuntimeFourthNeighborhood = 0.0
-
         # Runtime to tie the solution value of the model
         self.RuntimeTieModel = None
 
 class Solution:
     def __init__(self):
-        # Integer variable 'x' corresponding to the number of smart meters installed in meter group 'j' during time interval 't'
-        self.x = np.zeros((len(meter_groups), len(intervals)), dtype=int)
+        # Integer variable 'x' corresponding to the number of meters replaced in meter group 'j' during time interval 't'
+        self.x = np.zeros((len(groups), len(intervals)), dtype=int)
 
-        # Binary variable 'y' taking value 1 if meter group 'j' is served time interval 't' and 0 otherwise
-        self.y = np.zeros((len(meter_groups), len(intervals)), dtype=int)
+        # Binary variable 'y' taking value 1 if meter group 'j' is worked during time interval 't' and 0 otherwise
+        self.y = np.zeros((len(groups), len(intervals)), dtype=int)
 
-        # Binary variable 'overline_y' taking value 1 if installations in meter group 'j' are completed during time interval 't' and 0 otherwise
-        self.overline_y = np.zeros((len(meter_groups), len(intervals)), dtype=int)
+        # Binary variable 'overline_y' taking value 1 if replacements in meter group 'j' are completed during time interval 't' and 0 otherwise
+        self.overline_y = np.zeros((len(groups), len(intervals)), dtype=int)
 
         # Binary variable 'z' taking value 1 if meter group 'j' is already smart during time interval 't' and 0 otherwise
-        self.z = np.zeros((len(meter_groups), len(intervals)), dtype=int)
+        self.z = np.zeros((len(groups), len(intervals)), dtype=int)
 
-        # Continuous variable 'S' corresponding to the conditional cost savings
+        # Continuous variable 'S' corresponding to the cost savings
         self.S = np.zeros(len(periods), dtype=float)
 
         # Continuous variable 'R' corresponding to the additional revenues defined by the Authority

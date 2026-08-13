@@ -31,13 +31,13 @@ def parseArguments():
         parser.add_argument('--instanceName', action="store", type=str, required=True, help="Name of the instance", dest="argInstanceName")
 
         # App (i.e., 'branch-and-cut' or 'grasp')
-        parser.add_argument('--solutionMethod', action="store", type=str, required=True, help="App (i.e., 'branch-and-cut' or 'grasp')", dest="argSolutionMethod")
+        parser.add_argument('--solutionMethod', action="store", type=str, required=True, help="App (i.e., \'branch-and-cut\' or \'grasp\')", dest="argSolutionMethod")
 
         # Sorting rule used within the greedy randomized constructive heuristics
-        parser.add_argument('--sortingRule', action="store", type=str, required=False, help="Sorting rule used within the greedy randomized constructive heuristics (i.e., \'LongestRemainingProcessingTime\', or \'ShortestRemainingProcessingTime\'", dest="argSortingRule")
+        parser.add_argument('--sortingRule', action="store", type=str, required=False, help="Sorting rule used within the semi-greedy (i.e., \'LongestRemainingProcessingTime\', or \'ShortestRemainingProcessingTime\')", dest="argSortingRule")
 
         # Cardinality of the restricted candidate list in the greedy randomized constructive heuristics
-        parser.add_argument('--alpha', action="store", type=int, required=False, help="Cardinality of the restricted candidate list in the greedy randomized constructive heuristics", dest="argAlpha")
+        parser.add_argument('--alpha', action="store", type=int, required=False, help="Cardinality of the restricted candidate list in the semi-greedy", dest="argAlpha")
 
         # 1st parameter for the local search
         parser.add_argument('--beta', action="store", type=float, required=False, help="1st parameter for the local search", dest="argBeta")
@@ -47,9 +47,6 @@ def parseArguments():
 
         # 3rd parameter for the local search
         parser.add_argument('--delta', action="store", type=float, required=False, help="3rd parameter for the local search", dest="argDelta")
-
-        # 4th parameter for the local search
-        parser.add_argument('--epsilon', action="store", type=float, required=False, help="4th parameter for the local search", dest="argEpsilon")
 
         # Solution obtained with the model
         parser.add_argument('--solutionValue', action="store", type=float, required=False, help="Solution obtained using the \'branch-and-cut\' solution method", dest="argSolutionValue")
@@ -66,8 +63,8 @@ def parseArguments():
         # Thread count for the solver
         parser.add_argument('--threads', action="store", type=int, required=True, help="Thread count for the solver", dest="argThreads")
 
-        # Seed to initialize the random number generator
-        parser.add_argument('--seed', action="store", type=int, required=False, help="Seed to initialize the random number generator", dest="argSeed")
+        # Seed to initialize the pseudo-random number generator
+        parser.add_argument('--seed', action="store", type=int, required=False, help="Seed to initialize the pseudo-random number generator", dest="argSeed")
 
         # Define '_cached_args'
         _cached_args = parser.parse_args()

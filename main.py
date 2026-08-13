@@ -1,6 +1,5 @@
 # import
-from config import (args, J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C,
-                    instanceName, P, periods, meter_groups, substitution_squads, intervals)
+from config import args, instanceName, periods, groups, intervals
 from classes import Solution, Metrics
 from gurobipy import GRB
 from model import createModel, solutionCallback
@@ -61,7 +60,7 @@ with (env, m):
         metrics = Metrics()
 
         # Clear the output file at the start
-        with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_"+ str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "w") as graspFile:
+        with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "w") as graspFile:
             graspFile.write("Solution improvement(s):")
             graspFile.write("\n+-------------------+-------------------+--------------------+")
             graspFile.write("\n|         Iteration | NPV (semi-greedy) | NPV (local search) |")
@@ -72,13 +71,13 @@ with (env, m):
             # Message for the user
             print(f"> Iteration: {metrics.NumIters}\n")
 
-            # SOLUTION CONSTRUCTION: run the semi-greedy (or randomized-greedy) algorithm
+            # SOLUTION CONSTRUCTION: run the semi-greedy algorithm (or greedy randomized constructive heuristic)
             currentSolution = greedyRandomizedConstructiveHeuristics()
 
             # Message for the user
             print(f"--> NPV_curr: {currentSolution.NPV:.2f}\n")
 
-            with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
+            with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
                 graspFile.write(f"\n| {metrics.NumIters:>17.0f} | {currentSolution.NPV:>17.2f} |")
 
             # LOCAL SEARCH: run the Variable MIP Neighborhood Descent
@@ -87,9 +86,9 @@ with (env, m):
             print("> Improving the solution via variable MIP neighborhood descent...\n")
 
             # Define 'neighborhood' iterator
-            neighborhood = 2
+            neighborhood = 1
 
-            while neighborhood <= 4:
+            while neighborhood <= 3:
                 # Copy current solution
                 newSolution = currentSolution.copy()
 
@@ -123,7 +122,7 @@ with (env, m):
                         currentSolution.updateFromSolution(newSolution)
 
                         # Reset 'neighborhood' iterator to explore the same neighborhood again
-                        neighborhood = 2
+                        neighborhood = 1
                     else:
                         # Explore the next neighborhood
                         neighborhood += 1
@@ -152,7 +151,7 @@ with (env, m):
                     # Explore the next neighborhood
                     neighborhood += 1
 
-            with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
+            with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
                 graspFile.write(f"  {currentSolution.NPV:>17.2f} |")
 
             # Check whether a new incumbent solution has been found
@@ -170,11 +169,11 @@ with (env, m):
             # Increment 'NumIters'
             metrics.NumIters += 1
 
-            # Check whether the time limit has been reached -- DISABLED
-            # if tm.perf_counter() - t1 >= 3600.0:
-            #     break
+            # Check whether the time limit has been reached
+            if tm.perf_counter() - t1 >= 3600.0:
+                break
 
-        with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argEpsilon).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
+        with open("output/info/results_grasp_" + instanceName + "_" + str(args.argAlpha) + "_" + str(args.argBeta).replace(".", "_") + "_" + str(args.argChi).replace(".", "_") + "_" + str(args.argDelta).replace(".", "_") + "_" + str(args.argMaxIter) + "_" + str(args.argSeed) + ".txt", "a") as graspFile:
             graspFile.write("\n+-------------------+-------------------+--------------------+")
 
         # Compute 'Runtime'
@@ -187,4 +186,4 @@ with (env, m):
         print(f"--> NPV_best: {bestSolution.NPV:.2f}")
 
         # Write the best solution to file
-        writeOutputAlgorithmFile(args.argInstanceName, bestSolution, metrics, periods, meter_groups, intervals, args.argAlpha, args.argBeta, args.argChi, args.argDelta, args.argEpsilon, args.argMaxIter, args.argSeed)
+        writeOutputAlgorithmFile(args.argInstanceName, bestSolution, metrics, periods, groups, intervals, args.argAlpha, args.argBeta, args.argChi, args.argDelta, args.argMaxIter, args.argSeed)

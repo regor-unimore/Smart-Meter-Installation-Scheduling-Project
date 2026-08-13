@@ -1,6 +1,5 @@
 # import
-from config import (args, J, K, T, N, Q, b, sigma, S1, S2, SP, DH, r, gamma, C,
-                    instanceName, P, periods, meter_groups, substitution_squads, intervals)
+from config import args, J, T, SP, gamma, periods, intervals, groups
 from gurobipy import GRB
 import math as m
 import numpy as np
@@ -11,7 +10,7 @@ import time as tm
 rnd.seed(args.argSeed)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Function(s) implementing the Random Variable MIP Neighborhood Descent used to improve the solution of the semi-greedy
+# Function(s) implementing the Variable MIP Neighborhood Descent used to improve the solution of the semi-greedy
 # ----------------------------------------------------------------------------------------------------------------------
 def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X, D, metrics, neighborhood):
     """
@@ -21,10 +20,10 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
         Args:
         - solution: current solution object
         - model: SMISP model
-        - x, y, overline_y, z: operational variables
-        - S, R, X, D: supporting variables
+        - x, y, overline_y, z: decision variables
+        - S, R, X, D: auxiliary variables
         - metrics: metrics object for tracking performance
-        - neighborhood: neighborhood indicator (1-4)
+        - neighborhood: neighborhood indicator (1-3)
 
         Returns:
         - tuple: (solution, status, solution_count)
@@ -123,7 +122,7 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
                     solution.D[p] = D[p].X
 
                 # Update 'x', 'y', 'overline_y', and 'z' attributes in the solution
-                for j in meter_groups:
+                for j in groups:
                     for t in intervals:
                         solution.x[j, t] = x[j, t].X
                         solution.y[j, t] = y[j, t].X
@@ -190,20 +189,17 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
         model.update()
 
     # Update 'metrics'
-    eplapsed_tm = tm.perf_counter() - t2
+    elapsed_tm = tm.perf_counter() - t2
 
     if neighborhood == 1:
         metrics.NumItersFirstNeighborhood += 1
-        metrics.CumulativeRuntimeFirstNeighborhood += eplapsed_tm
+        metrics.CumulativeRuntimeFirstNeighborhood += elapsed_tm
     elif neighborhood == 2:
         metrics.NumItersSecondNeighborhood += 1
-        metrics.CumulativeRuntimeSecondNeighborhood += eplapsed_tm
+        metrics.CumulativeRuntimeSecondNeighborhood += elapsed_tm
     elif neighborhood == 3:
         metrics.NumItersThirdNeighborhood += 1
-        metrics.CumulativeRuntimeThirdNeighborhood += eplapsed_tm
-    elif neighborhood == 4:
-        metrics.NumItersFourthNeighborhood += 1
-        metrics.CumulativeRuntimeFourthNeighborhood += eplapsed_tm
+        metrics.CumulativeRuntimeThirdNeighborhood += elapsed_tm
 
     return solution, status, solution_count
 
@@ -211,84 +207,68 @@ def variableMIPNeighborhoodDescent(solution, model, x, y, overline_y, z, S, R, X
 def getVariablesToFix(neighborhood):
     """ Separate function to determine which variables to fix. """
 
-    # Define empty lists for fixed variables
-    y_fixed = []
-    overline_y_fixed = []
-    z_fixed = []
-
     # Call the 'neighborhood'
     if neighborhood == 1:
         # Message to the user
         print(f"\n> Using \'neighborhood\' no. {neighborhood}...\n")
 
-        """ > 1st 'neighborhood': fixes all variables for which a generated random value is greater than 'args.argBeta' """
+        """ > 1st 'neighborhood': randomly chooses a 'k'-size list of meter groups and fixes all variables for these meter groups """
+        # Define 'k' and randomly choose a 'k'-size set of unique meter groups
+        k = int(m.ceil(J * args.argBeta))
+        meter_group_fixed = set(rnd.sample(groups, k=k))
+
         # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > args.argBeta])
+        y_fixed = np.array([(j, t) for j in groups for t in intervals if j in meter_group_fixed])
 
         # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > args.argBeta])
+        overline_y_fixed = np.array([(j, t) for j in groups for t in intervals if j in meter_group_fixed])
 
         # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if rnd.random() > args.argBeta])
+        z_fixed = np.array([(j, t) for j in groups for t in intervals if j in meter_group_fixed])
 
     elif neighborhood == 2:
         # Message to the user
         print(f"\n> Using \'neighborhood\' no. {neighborhood}...\n")
 
-        """ > 2nd 'neighborhood': randomly chooses a 'k'-size list of meter groups and fixes all variables for these meter groups """
-        # Define 'k' and randomly choose a 'k'-size set of unique meter groups
-        k = int(m.ceil(J * args.argChi))
-        meter_group_fixed = set(rnd.sample(meter_groups, k=k))
+        """ > 2nd 'neighborhood': randomly chooses a starting interval and fixes all variables for 'k' intervals from this (i.e., re-starting from the beginning if necessary) """
+        # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
+        k = int(m.ceil((SP * T) * args.argChi))
+        start_interval = rnd.choice(intervals)
+        interval_fixed = set((start_interval + i) % len(intervals) for i in range(k))
 
         # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
+        y_fixed = np.array([(j, t) for j in groups for t in intervals if t in interval_fixed])
 
         # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
+        overline_y_fixed = np.array([(j, t) for j in groups for t in intervals if t in interval_fixed])
 
         # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j in meter_group_fixed])
+        z_fixed = np.array([(j, t) for j in groups for t in intervals if t in interval_fixed])
 
     elif neighborhood == 3:
         # Message to the user
         print(f"\n> Using \'neighborhood\' no. {neighborhood}...\n")
 
-        """ > 3rd 'neighborhood': randomly chooses a starting interval and fixes all variables for 'k' intervals from this (i.e., re-starting from the beginning if necessary) """
-        # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
-        k = int(m.ceil((SP * T) * args.argDelta))
-        start_interval = rnd.choice(intervals)
-        interval_fixed = set((start_interval + i) % len(intervals) for i in range(k))
-
-        # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
-
-        # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
-
-        # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if t in interval_fixed])
-
-    elif neighborhood == 4:
-        # Message to the user
-        print(f"\n> Using \'neighborhood\' no. {neighborhood}...\n")
-
-        """ > 4th 'neighborhood': randomly chooses a 'k'-size list of meter groups, a starting interval, and fixes all variables outside the 'k' intervals from this for meter groups that are not in the list """
+        """ > 3rd 'neighborhood': randomly chooses a 'k1'-size list of meter groups and a starting interval, and fixes all variables except those of the chosen meter groups during the 'k2' intervals from this (i.e., re-starting from the beginning if necessary) """
         # Define 'k' and randomly choose a 'k'-size set of unique meter groups
-        k_meter = int(m.ceil(J * args.argEpsilon))
-        meter_group_fixed = set(rnd.sample(meter_groups, k=k_meter))
+        k_meter = int(m.ceil(J * args.argDelta))
+        meter_group_fixed = set(rnd.sample(groups, k=k_meter))
 
         # Define 'k', randomly choose 'start_interval', and define a 'k'-size set of intervals from 'start_interval'
-        k_interval = int(m.ceil((SP * T) * args.argDelta))
+        k_interval = int(m.ceil((SP * T) * args.argChi))
         start_interval = rnd.choice(intervals)
         interval_fixed = set((start_interval + i) % len(intervals) for i in range(k_interval))
 
         # Fix 'y' variables
-        y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
+        y_fixed = np.array([(j, t) for j in groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
 
         # Fix 'overline_y' variables
-        overline_y_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
+        overline_y_fixed = np.array([(j, t) for j in groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
 
         # Fix 'z' variables
-        z_fixed = np.array([(j, t) for j in meter_groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
+        z_fixed = np.array([(j, t) for j in groups for t in intervals if j not in meter_group_fixed or t not in interval_fixed])
+
+    else:
+        raise ValueError(f"Invalid neighborhood value: {neighborhood}")
 
     return y_fixed, overline_y_fixed, z_fixed

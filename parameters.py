@@ -36,17 +36,17 @@ def setupParameters(pathToFolder, instanceName):
 # ----------------------------------------------------------------------------------------------------------------------
 def setupIndexes(J, K, SP, DH, T):
     """
-    Sets up the list of indexes for periods, meter groups, substitution squads, and time intervals.
+    Sets up the list of indexes for periods, groups, teams, and time intervals.
 
     Args:
         J (int): Number of meter groups.
-        K (int): Number of substitution squads.
-        SP (int): Starting period.
-        DH (int): Duration of horizon.
+        K (int): Number of teams of technicians.
+        SP (int): Operational horizon (i.e., number of years).
+        DH (int): Depreciation horizon (i.e., number of years).
         T (int): Number of time intervals.
 
     Returns:
-        tuple: All lists of periods, meter groups, substitution squads, and intervals
+        tuple: All lists of periods, groups, teams, and time intervals
     """
     global _cached_indexes
 
@@ -55,22 +55,22 @@ def setupIndexes(J, K, SP, DH, T):
         # Message for the user
         print("> Estimating the number of periods and creating the lists of indexes...\n")
 
-        # General formula for estimating the number of periods (i.e., years) 'P'
+        # General formula for estimating the index of the last year of the project
         P = SP + (DH + 1)
 
-        # List of indexes for the periods
+        # List of indexes for periods
         periods = [p for p in range(P + 1)]
 
-        # List of indexes for the meter groups
-        meter_groups = [j for j in range(J)]
+        # List of indexes for groups
+        groups = [j for j in range(J)]
 
-        # List of indexes for the substitution squads
-        substitution_squads = [k for k in range(K)]
+        # List of indexes for teams
+        teams = [k for k in range(K)]
 
         # List of indexes for the time intervals within the operational horizon
         intervals = [t for t in range(SP * T)]
 
         # Define '_cached_indexes'
-        _cached_indexes = (P, periods, meter_groups, substitution_squads, intervals)
+        _cached_indexes = (P, periods, groups, teams, intervals)
 
     return _cached_indexes
